@@ -1,0 +1,23 @@
+{
+    "name": "logtail/monolog",
+    "description": "Logtail handler for Monolog",
+    "homepage": "https://github.com/logtail/logtail-php",
+    "type": "library",
+    "license": "ISC",
+    "require": {
+        "php": "^7.0",
+        "monolog/monolog": ">=1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {"Logtail\\Monolog\\": "src/Monolog"}
+    },
+    "autoload-dev": {
+        "psr-4": {"Logtail\\Monolog\\": "src/Monolog"}
+    },
+    "scripts": {
+        "test": "phpunit tests"
+    }
+}
