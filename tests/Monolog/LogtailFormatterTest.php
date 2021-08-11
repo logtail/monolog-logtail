@@ -9,12 +9,12 @@ class LogtailFormatterTest extends \PHPUnit\Framework\TestCase {
      */
     private $formatter = null;
 
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         $this->formatter = new \Logtail\Monolog\LogtailFormatter();
     }
 
-    public function testJsonFormat() {
+    public function testJsonFormat(): void {
         $record = [
             'message' => 'some message',
             'context' => [],
