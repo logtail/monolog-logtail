@@ -4,6 +4,9 @@
     "homepage": "https://github.com/logtail/logtail-php",
     "type": "library",
     "license": "ISC",
+    "keywords": [
+        "log", "logging", "logger", "monolog", "handler", "php"
+    ],
     "require": {
         "php": "^7.3 || ^8",
         "monolog/monolog": "^2"

@@ -7,7 +7,7 @@
 Install using composer:
 
 ```bash
-composer require logtail/monolog-logtail  
+composer require logtail/monolog-logtail
 ```
 
 ## Usage
@@ -15,19 +15,20 @@ composer require logtail/monolog-logtail
 The only parameter you need is a `source_token` which you'll get when you [create a new Source](https://logtail.com/team/0/sources) in your [Logtail account](https://logtail.com).
 
 ```php
+<?php
+
 require 'vendor/autoload.php';
 
 use Monolog\Logger;
 use Logtail\Monolog\LogtailHandler;
 
-$log = new Logger('testing-logtail');
-$log->pushHandler(new LogtailHandler("YOUR_LOGTAIL_SOURCE_TOKEN_GOES_HERE"));
+$logger = new Logger('testing-logtail');
+$logger->pushHandler(new LogtailHandler("YOUR_LOGTAIL_SOURCE_TOKEN_GOES_HERE"));
 
-$log->info('Hello Logtail!')
-$log->debug('Log with some...', ['additional' => ['structured' => 123, 'logs' => true]]);
+$logger->info('Hello Logtail!');
+$logger->debug('Log with some...', ['additional' => ['structured' => 123, 'logs' => true]]);
 ```
 
 ## License
 
 This library in Licensed under ISC.
-
