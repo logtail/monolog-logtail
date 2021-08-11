@@ -1,4 +1,4 @@
-# logtail-php
+# monolog-logtail
 
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC) ![Unit tests](https://github.com/logtail/logtail-php/actions/workflows/main.yml/badge.svg)
 
