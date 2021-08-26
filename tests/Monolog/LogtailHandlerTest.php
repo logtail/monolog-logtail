@@ -2,11 +2,7 @@
 
 namespace Logtail\Monolog;
 
-class LogtailFormatterTest extends \PHPUnit\Framework\TestCase {
-    private $logDNAHandler;
-    private $logger;
-    private $container = [];
-
+class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
     public function testHandlerWrite()
     {
         ob_start();
