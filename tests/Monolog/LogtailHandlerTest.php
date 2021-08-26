@@ -19,7 +19,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         // hack: replace the private client object
         $mockClient = new MockLogtailClient;
-        $setMockClient = function() {
+        $setMockClient = function() use ($mockClient) {
             $this->client = $mockClient;
         };
         $setMockClient->call($handler);
