@@ -13,7 +13,10 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         $logger = new \Monolog\Logger('test');
         $logger->pushHandler($handler);
 
-        $getHandle = function() { $this->handle; };
+        $getHandle = function() {
+            if (is_null($this->handle)) $this->initCurlHandle();
+            $this->handle;
+        };
         $handle = $getHandle->call($handler);
 
         \curl_setopt($handle, CURLOPT_VERBOSE, true);
