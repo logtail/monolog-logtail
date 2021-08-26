@@ -15,22 +15,10 @@ namespace Logtail\Monolog;
  * Sends log to Logtail.
  */
 class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
-    const URL = "https://in.logtail.com";
-
     /**
-     * @var string $endpoint
+     * @var LogtailClient $client
      */
-    private $endpoint;
-
-    /**
-     * @var string $sourceToken
-     */
-    private $sourceToken;
-
-    /**
-     * @var resource $handle
-     */
-    private $handle = NULL;
+    private $client;
 
     /**
      * @param string $sourceToken
@@ -38,29 +26,27 @@ class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
      * @param int $level
      * @param bool $bubble
      */
-    public function __construct($sourceToken, $level = \Monolog\Logger::DEBUG, $bubble = true, $endpoint = self::URL) {
+    public function __construct(
+        $sourceToken,
+        $level = \Monolog\Logger::DEBUG,
+        $bubble = true,
+        $endpoint = LogtailClient::URL
+    ) {
         parent::__construct($level, $bubble);
 
-        if (!\extension_loaded('curl')) {
-            throw new \LogicException('The curl extension is needed to use the LogtailHandler');
-        }
+        $this->client = new LogtailClient($sourceToken, $endpoint);
 
-        $this->sourceToken = $sourceToken;
-        $this->endpoint = $endpoint;
+        $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
+        $this->pushProcessor(new \Monolog\Processor\WebProcessor);
+        $this->pushProcessor(new \Monolog\Processor\ProcessIdProcessor);
+        $this->pushProcessor(new \Monolog\Processor\HostnameProcessor);
     }
 
     /**
      * @param array $record
      */
     protected function write(array $record): void {
-        if (is_null($this->handle)) {
-            $this->initCurlHandle();
-        }
-
-        \curl_setopt($this->handle, CURLOPT_POSTFIELDS, $record["formatted"]);
-        \curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, true);
-
-        \Monolog\Handler\Curl\Util::execute($this->handle, 5, false);
+        $this->client->send($record["formatted"]);
     }
 
     /**
@@ -68,21 +54,5 @@ class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
      */
     protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface {
         return new \Logtail\Monolog\LogtailFormatter();
-    }
-
-    /**
-     * @return void
-     */
-    private function initCurlHandle() {
-        $this->handle = \curl_init();
-
-        $headers = [
-            'Content-Type: application/json',
-            "Authorization: Bearer {$this->sourceToken}"
-        ];
-
-        \curl_setopt($this->handle, CURLOPT_URL, $this->endpoint);
-        \curl_setopt($this->handle, CURLOPT_POST, true);
-        \curl_setopt($this->handle, CURLOPT_HTTPHEADER, $headers);
     }
 }
