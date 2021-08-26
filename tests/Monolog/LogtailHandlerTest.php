@@ -22,6 +22,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         $setMockClient->call($handler);
 
         // set global $_SERVER data
+        global $_SERVER;
         $_SERVER = [
             'REQUEST_URI' => '',
             'REMOTE_ADDR' => '',
