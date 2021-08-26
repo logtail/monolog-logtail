@@ -17,6 +17,10 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         fclose($out);
         $debug = ob_get_clean();
 
+        echo "--- START";
         echo $debug;
+        echo "--- END";
+
+        $this->assertEquals(true, false);
     }
 }
