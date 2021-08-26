@@ -41,7 +41,7 @@ class LogtailClient {
         $this->endpoint = $endpoint;
     }
 
-    public function send(array $data) {
+    public function send($data) {
         if (is_null($this->handle)) {
             $this->initCurlHandle();
         }
