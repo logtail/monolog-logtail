@@ -14,7 +14,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         $logger->pushHandler($handler);
 
         $getHandle = function() { $this->handle; };
-        $handle = $getHandle->call($logger);
+        $handle = $getHandle->call($handler);
 
         \curl_setopt($handle, CURLOPT_VERBOSE, true);
         \curl_setopt($handle, CURLOPT_STDERR, $out);
