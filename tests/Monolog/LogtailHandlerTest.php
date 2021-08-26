@@ -12,15 +12,22 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         $logger = new \Monolog\Logger('test');
         $logger->pushHandler($handler);
+
+        $getHandle = function() { $this->handle; };
+        $handle = $getHandle->call($logger);
+
+        \curl_setopt($handle, CURLOPT_VERBOSE, true);
+        \curl_setopt($handle, CURLOPT_STDERR, $out);
+
         $logger->debug('test message');
 
         fclose($out);
-        $debug = ob_get_clean();
+        $output = ob_get_clean();
 
         echo "--- START";
-        echo $debug;
+        echo $output;
         echo "--- END";
 
-        $this->assertEquals(true, false);
+        $this->assertEquals($output, "abc");
     }
 }
