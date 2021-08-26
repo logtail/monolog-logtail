@@ -47,6 +47,11 @@ class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
 
         $this->sourceToken = $sourceToken;
         $this->endpoint = $endpoint;
+
+        $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
+        $this->pushProcessor(new \Monolog\Processor\WebProcessor);
+        $this->pushProcessor(new \Monolog\Processor\ProcessIdProcessor);
+        $this->pushProcessor(new \Monolog\Processor\HostnameProcessor);
     }
 
     /**
