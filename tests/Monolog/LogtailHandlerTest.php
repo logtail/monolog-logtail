@@ -13,12 +13,22 @@ class MockLogtailClient {
 class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
     public function testHandlerWrite() {
         $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+
         // hack: replace the private client object
         $mockClient = new MockLogtailClient;
         $setMockClient = function() use ($mockClient) {
             $this->client = $mockClient;
         };
         $setMockClient->call($handler);
+
+        // set global $_SERVER data
+        $_SERVER = [
+            'REQUEST_URI' => '',
+            'REMOTE_ADDR' => '',
+            'REQUEST_METHOD' => '',
+            'SERVER_NAME' => '',
+            'HTTP_REFERER' => '',
+        ];
 
         $logger = new \Monolog\Logger('test');
         $logger->pushHandler($handler);
