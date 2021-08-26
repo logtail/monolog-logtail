@@ -26,6 +26,25 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         $decoded = \json_decode($mockClient->capturedData, true);
 
-        $this->assertEquals($decoded['message'], 'test message');
+        $this->assertArrayHasKey('extra', $decoded);
+
+        // the introspection processor
+        $this->assertArrayHasKey('file', $decoded['extra']);
+        $this->assertArrayHasKey('line', $decoded['extra']);
+        $this->assertArrayHasKey('class', $decoded['extra']);
+        $this->assertArrayHasKey('function', $decoded['extra']);
+
+        // the web processor
+        $this->assertArrayHasKey('url', $decoded['extra']);
+        $this->assertArrayHasKey('ip', $decoded['extra']);
+        $this->assertArrayHasKey('http_method', $decoded['extra']);
+        $this->assertArrayHasKey('server', $decoded['extra']);
+        $this->assertArrayHasKey('referrer', $decoded['extra']);
+
+        // the process ID processor
+        $this->assertArrayHasKey('process_id', $decoded['extra']);
+
+        // the hostname processor
+        $this->assertArrayHasKey('hostname', $decoded['extra']);
     }
 }
