@@ -2,35 +2,30 @@
 
 namespace Logtail\Monolog;
 
-class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
-    public function testHandlerWrite()
-    {
-        ob_start();
-        $out = fopen('php://output', 'w');
+class MockLogtailClient {
+    public $capturedData = NULL;
 
+    public function send(array $data) {
+        $this->capturedData = $data;
+    }
+}
+
+class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
+    public function testHandlerWrite() {
         $handler = new \Logtail\Monolog\LogtailHandler("sourceTokenXYZ");
 
         $logger = new \Monolog\Logger('test');
         $logger->pushHandler($handler);
 
-        $getHandle = function() {
-            if (is_null($this->handle)) $this->initCurlHandle();
-            return $this->handle;
+        // hack: replace the private client object
+        $mockClient = new MockLogtailClient;
+        $setMockClient = function() {
+            $this->client = $mockClient;
         };
-        $handle = $getHandle->call($handler);
-
-        \curl_setopt($handle, CURLOPT_VERBOSE, true);
-        \curl_setopt($handle, CURLOPT_STDERR, $out);
+        $setMockClient->call($handler);
 
         $logger->debug('test message');
 
-        fclose($out);
-        $output = ob_get_clean();
-
-        echo "--- START";
-        echo $output;
-        echo "--- END";
-
-        $this->assertEquals($output, "abc");
+        $this->assertEquals($mockClient->capturedData["extra"], NULL);
     }
 }
