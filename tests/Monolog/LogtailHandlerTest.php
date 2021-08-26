@@ -15,7 +15,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         $getHandle = function() {
             if (is_null($this->handle)) $this->initCurlHandle();
-            $this->handle;
+            return $this->handle;
         };
         $handle = $getHandle->call($handler);
 
