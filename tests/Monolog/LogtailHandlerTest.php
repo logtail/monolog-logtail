@@ -5,7 +5,7 @@ namespace Logtail\Monolog;
 class MockLogtailClient {
     public $capturedData = NULL;
 
-    public function send(array $data) {
+    public function send($data) {
         $this->capturedData = $data;
     }
 }
