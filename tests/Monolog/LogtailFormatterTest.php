@@ -15,7 +15,7 @@ class LogtailFormatterTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testJsonFormat(): void {
-        $record = [
+        $input = [
             'message' => 'some message',
             'context' => [],
             'level' => 100,
@@ -25,14 +25,14 @@ class LogtailFormatterTest extends \PHPUnit\Framework\TestCase {
             'datetime' => '"2021-08-10T14:49:47.618908+00:00"'
         ];
 
-        $json = $this->formatter->format($record);
-        $decoded_json = \json_decode($json, true);
+        $json = $this->formatter->format($input);
+        $decoded = \json_decode($json, true);
 
-        $this->assertEquals($decoded_json['message'], $record['message']);
-        $this->assertEquals($decoded_json['level'], $record['level_name']);
-        $this->assertEquals($decoded_json['dt'], $record['datetime']);
-        $this->assertEquals($decoded_json['monolog']['channel'], $record['channel']);
-        $this->assertEquals($decoded_json['monolog']['extra'], $record['extra']);
-        $this->assertEquals($decoded_json['monolog']['context'], $record['context']);
+        $this->assertEquals($decoded['message'], $input['message']);
+        $this->assertEquals($decoded['level'], $input['level_name']);
+        $this->assertEquals($decoded['dt'], $input['datetime']);
+        $this->assertEquals($decoded['monolog']['channel'], $input['channel']);
+        $this->assertEquals($decoded['monolog']['extra'], $input['extra']);
+        $this->assertEquals($decoded['monolog']['context'], $input['context']);
     }
 }
