@@ -26,25 +26,26 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         $decoded = \json_decode($mockClient->capturedData, true);
 
-        $this->assertArrayHasKey('extra', $decoded);
+        $this->assertArrayHasKey('monolog', $decoded);
+        $this->assertArrayHasKey('extra', $decoded['monolog']);
 
         // the introspection processor
-        $this->assertArrayHasKey('file', $decoded['extra']);
-        $this->assertArrayHasKey('line', $decoded['extra']);
-        $this->assertArrayHasKey('class', $decoded['extra']);
-        $this->assertArrayHasKey('function', $decoded['extra']);
+        $this->assertArrayHasKey('file', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('line', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('class', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('function', $decoded['monolog']['extra']);
 
         // the web processor
-        $this->assertArrayHasKey('url', $decoded['extra']);
-        $this->assertArrayHasKey('ip', $decoded['extra']);
-        $this->assertArrayHasKey('http_method', $decoded['extra']);
-        $this->assertArrayHasKey('server', $decoded['extra']);
-        $this->assertArrayHasKey('referrer', $decoded['extra']);
+        $this->assertArrayHasKey('url', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('ip', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('http_method', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('server', $decoded['monolog']['extra']);
+        $this->assertArrayHasKey('referrer', $decoded['monolog']['extra']);
 
         // the process ID processor
-        $this->assertArrayHasKey('process_id', $decoded['extra']);
+        $this->assertArrayHasKey('process_id', $decoded['monolog']['extra']);
 
         // the hostname processor
-        $this->assertArrayHasKey('hostname', $decoded['extra']);
+        $this->assertArrayHasKey('hostname', $decoded['monolog']['extra']);
     }
 }
