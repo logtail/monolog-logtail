@@ -2,6 +2,8 @@
 
 namespace Logtail\Monolog;
 
+use Monolog\Formatter\LineFormatter;
+
 class MockLogtailClient {
     public $capturedData = NULL;
 
@@ -11,16 +13,8 @@ class MockLogtailClient {
 }
 
 class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
-    public function testHandlerWrite() {
-        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
-
-        // hack: replace the private client object
-        $mockClient = new MockLogtailClient;
-        $setMockClient = function() use ($mockClient) {
-            $this->client = $mockClient;
-        };
-        $setMockClient->call($handler);
-
+    protected function setUp(): void
+    {
         // set global $_SERVER data
         global $_SERVER;
         $_SERVER = array_merge($_SERVER, [
@@ -30,6 +24,18 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
             'SERVER_NAME' => '',
             'HTTP_REFERER' => '',
         ]);
+    }
+
+
+    public function testHandlerWrite() {
+        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+
+        // hack: replace the private client object
+        $mockClient = new MockLogtailClient;
+        $setMockClient = function() use ($mockClient) {
+            $this->client = $mockClient;
+        };
+        $setMockClient->call($handler);
 
         $logger = new \Monolog\Logger('test');
         $logger->pushHandler($handler);
@@ -58,5 +64,29 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         // the hostname processor
         $this->assertArrayHasKey('hostname', $decoded['monolog']['extra']);
+    }
+
+
+    public function testHandlerWriteWithLineFormatter() {
+        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+
+        // test a scenario when the formatter has been set, so the default formatter is not used
+        // this is the case with e.g. Laravel
+        $handler->setFormatter(new LineFormatter());
+
+        // hack: replace the private client object
+        $mockClient = new MockLogtailClient;
+        $setMockClient = function() use ($mockClient) {
+            $this->client = $mockClient;
+        };
+        $setMockClient->call($handler);
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+
+        $decoded = \json_decode($mockClient->capturedData, true);
+
+        $this->assertEquals(0, json_last_error(), "The formatted data is not valid JSON");
     }
 }

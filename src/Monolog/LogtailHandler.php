@@ -11,6 +11,8 @@
 
 namespace Logtail\Monolog;
 
+use Monolog\Formatter\FormatterInterface;
+
 /**
  * Sends log to Logtail.
  */
@@ -54,5 +56,10 @@ class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
      */
     protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface {
         return new \Logtail\Monolog\LogtailFormatter();
+    }
+
+    public function getFormatter(): FormatterInterface
+    {
+        return $this->getDefaultFormatter();
     }
 }
