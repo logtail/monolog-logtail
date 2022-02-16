@@ -1,6 +1,6 @@
 # Logtail Monolog example project
 
-To help you get started with using Logtail in your PHP projects, we have prepared a simple Python program that showcases the usage of Logtail logger.
+To help you get started with using Logtail in your PHP projects, we have prepared a simple program that showcases the usage of Logtail logger.
 
 ## Download and install the example project
 
