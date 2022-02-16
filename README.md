@@ -32,11 +32,11 @@ composer require logtail/monolog-logtail
 
 # Example project
 
-To help you get started with using Logtail in your PHP projects, we have prepared a simple Python program that showcases the usage of Logtail logger.
+To help you get started with using Logtail in your PHP projects, we have prepared a simple program that showcases the usage of Logtail logger.
 
 ## Download and install the example project
 
-You can download the [example project](https://github.com/logtail/logtail-python/tree/master/example-project) from GitHub directly or you can clone it to a select directory. In that directory, run the following command:
+You can download the [example project](https://github.com/logtail/monolog-logtail/tree/master/example-project) from GitHub directly or you can clone it to a select directory. In that directory, run the following command:
 
 ```bash
 composer update
@@ -62,7 +62,7 @@ This will create and send a total of 8 log messages to the Logtail. Each message
 
 ## Explore how example project works
  
-Learn how to setup PHP logging by exploring the workings of the [example project](https://github.com/logtail/logtail-python/tree/master/example-project) in detail. 
+Learn how to setup PHP logging by exploring the workings of the [example project](https://github.com/logtail/monolog-logtail/tree/master/example-project) in detail. 
  
 ---
  
