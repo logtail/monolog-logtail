@@ -1,6 +1,6 @@
 # monolog-logtail
 
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC) ![Unit tests](https://github.com/logtail/logtail-php/actions/workflows/main.yml/badge.svg)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE.md) ![Unit tests](https://github.com/logtail/logtail-php/actions/workflows/main.yml/badge.svg)
 
 ## Installation
 
@@ -28,7 +28,3 @@ $logger->pushHandler(new LogtailHandler("YOUR_LOGTAIL_SOURCE_TOKEN_GOES_HERE"));
 $logger->info('Hello Logtail!');
 $logger->debug('Log with some...', ['additional' => ['structured' => 123, 'logs' => true]]);
 ```
-
-## License
-
-This library in Licensed under ISC.
