@@ -3,6 +3,7 @@
 namespace Logtail\Monolog;
 
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\BufferHandler;
 
 class MockLogtailClient {
     public $capturedData = NULL;
@@ -88,5 +89,30 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         $decoded = \json_decode($mockClient->capturedData, true);
 
         $this->assertEquals(0, json_last_error(), "The formatted data is not valid JSON");
+    }
+
+    public function testHandlerWriteWithBatchWrite() {
+        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+
+        // hack: replace the private client object
+        $mockClient = new MockLogtailClient;
+        $setMockClient = function() use ($mockClient) {
+            $this->client = $mockClient;
+        };
+        $setMockClient->call($handler);
+
+        $bufferHandler = new BufferHandler($handler);
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($bufferHandler);
+        $logger->debug('test message');
+        $logger->debug('test message2');
+        $bufferHandler->flush();
+
+        $decoded = \json_decode($mockClient->capturedData, true);
+
+        $this->assertEquals(0, json_last_error(), "The formatted data is not valid JSON");
+        $this->assertTrue(is_array($decoded), "Expected array of logs");
+        $this->assertCount(2, $decoded, "Expected two logs");
     }
 }

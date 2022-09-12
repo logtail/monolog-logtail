@@ -19,6 +19,10 @@ if($argc != 2){
 $logger = new Logger("logtail-source");
 $logger->pushHandler(new LogtailHandler($argv[1]));
 
+# Alternatively, wrap using BufferHandler to send logs in batches:
+# $logger->pushHandler(new \Monolog\Handler\BufferHandler(new LogtailHandler($argv[1])));
+
+
 # Below you can see available methods that can be used to send logs to logtail.
 # Each method corresponds to Monologs log level.
 # You can also add additional context information in form of an array to any logging method and pass it as the

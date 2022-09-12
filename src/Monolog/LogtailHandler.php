@@ -52,6 +52,16 @@ class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
     }
 
     /**
+     * @param array $records
+     * @return void
+     */
+    public function handleBatch(array $records): void
+    {
+        $formattedRecords = $this->getFormatter()->formatBatch($records);
+        $this->client->send($formattedRecords);
+    }
+
+    /**
      * @return \Logtail\Monolog\LogtailFormatter
      */
     protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface {
