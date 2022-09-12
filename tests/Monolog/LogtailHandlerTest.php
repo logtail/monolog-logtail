@@ -29,7 +29,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
 
     public function testHandlerWrite() {
-        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+        $handler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
 
         // hack: replace the private client object
         $mockClient = new MockLogtailClient;
@@ -69,7 +69,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
 
     public function testHandlerWriteWithLineFormatter() {
-        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+        $handler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
 
         // test a scenario when the formatter has been set, so the default formatter is not used
         // this is the case with e.g. Laravel
@@ -92,22 +92,28 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testHandlerWriteWithBatchWrite() {
-        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+        $synchronousHandler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
+        $handler = new LogtailHandler('sourceTokenXYZ');
 
         // hack: replace the private client object
         $mockClient = new MockLogtailClient;
         $setMockClient = function() use ($mockClient) {
             $this->client = $mockClient;
         };
-        $setMockClient->call($handler);
+        $setMockHandler = function() use ($synchronousHandler) {
+            $this->handler = $synchronousHandler;
+        };
 
-        $bufferHandler = new BufferHandler($handler);
+        $setMockClient->call($synchronousHandler);
+        $setMockHandler->call($handler);
+
+
 
         $logger = new \Monolog\Logger('test');
-        $logger->pushHandler($bufferHandler);
+        $logger->pushHandler($handler);
         $logger->debug('test message');
         $logger->debug('test message2');
-        $bufferHandler->flush();
+        $handler->flush();
 
         $decoded = \json_decode($mockClient->capturedData, true);
 
