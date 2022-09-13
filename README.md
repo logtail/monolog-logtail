@@ -63,9 +63,12 @@ This will create and send a total of 8 log messages to the Logtail. Each message
 ## Explore how example project works
  
 Learn how to setup PHP logging by exploring the workings of the [example project](https://github.com/logtail/monolog-logtail/tree/master/example-project) in detail. 
- 
+
+## Improved performance with batches
+We extend `Monolog\Handler\BufferHandler` to send your logs periodically in batches for optimized network traffic by default. If you don't want to use batches or you want to use your own buffer handler, use `SynchronousLogtailHandler` instead.
+
 ---
- 
+
 ## Get in touch
 
 Have any questions? Please explore the Logtail [documentation](https://docs.logtail.com/) or contact our [support](https://betterstack.com/help).

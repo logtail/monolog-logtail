@@ -3,6 +3,7 @@
 namespace Logtail\Monolog;
 
 use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\BufferHandler;
 
 class MockLogtailClient {
     public $capturedData = NULL;
@@ -28,7 +29,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
 
     public function testHandlerWrite() {
-        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+        $handler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
 
         // hack: replace the private client object
         $mockClient = new MockLogtailClient;
@@ -68,7 +69,7 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
 
     public function testHandlerWriteWithLineFormatter() {
-        $handler = new \Logtail\Monolog\LogtailHandler('sourceTokenXYZ');
+        $handler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
 
         // test a scenario when the formatter has been set, so the default formatter is not used
         // this is the case with e.g. Laravel
@@ -88,5 +89,36 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         $decoded = \json_decode($mockClient->capturedData, true);
 
         $this->assertEquals(0, json_last_error(), "The formatted data is not valid JSON");
+    }
+
+    public function testHandlerWriteWithBatchWrite() {
+        $synchronousHandler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
+        $handler = new LogtailHandler('sourceTokenXYZ');
+
+        // hack: replace the private client object
+        $mockClient = new MockLogtailClient;
+        $setMockClient = function() use ($mockClient) {
+            $this->client = $mockClient;
+        };
+        $setMockHandler = function() use ($synchronousHandler) {
+            $this->handler = $synchronousHandler;
+        };
+
+        $setMockClient->call($synchronousHandler);
+        $setMockHandler->call($handler);
+
+
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+        $logger->debug('test message2');
+        $handler->flush();
+
+        $decoded = \json_decode($mockClient->capturedData, true);
+
+        $this->assertEquals(0, json_last_error(), "The formatted data is not valid JSON");
+        $this->assertTrue(is_array($decoded), "Expected array of logs");
+        $this->assertCount(2, $decoded, "Expected two logs");
     }
 }

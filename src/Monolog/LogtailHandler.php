@@ -11,55 +11,25 @@
 
 namespace Logtail\Monolog;
 
-use Monolog\Formatter\FormatterInterface;
+use Monolog\Handler\BufferHandler;
+use Monolog\Logger;
 
 /**
- * Sends log to Logtail.
+ * Sends buffered logs to Logtail.
  */
-class LogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
+class LogtailHandler extends BufferHandler
+{
     /**
-     * @var LogtailClient $client
+     * @param string           $sourceToken     Logtail source token
+     * @param int|string       $level           The minimum logging level at which this handler will be triggered
+     * @param bool             $bubble          Whether the messages that are handled can bubble up the stack or not
+     * @param                  $endpoint        Logtail ingesting endpoint
+     * @param int              $bufferLimit     How many entries should be buffered at most, beyond that the oldest items are removed from the buffer.
+     * @param bool             $flushOnOverflow If true, the buffer is flushed when the max size has been reached, by default oldest entries are discarded
      */
-    private $client;
-
-    /**
-     * @param string $sourceToken
-     * @param string $hostname
-     * @param int $level
-     * @param bool $bubble
-     */
-    public function __construct(
-        $sourceToken,
-        $level = \Monolog\Logger::DEBUG,
-        $bubble = true,
-        $endpoint = LogtailClient::URL
-    ) {
-        parent::__construct($level, $bubble);
-
-        $this->client = new LogtailClient($sourceToken, $endpoint);
-
-        $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
-        $this->pushProcessor(new \Monolog\Processor\WebProcessor);
-        $this->pushProcessor(new \Monolog\Processor\ProcessIdProcessor);
-        $this->pushProcessor(new \Monolog\Processor\HostnameProcessor);
-    }
-
-    /**
-     * @param array $record
-     */
-    protected function write(array $record): void {
-        $this->client->send($record["formatted"]);
-    }
-
-    /**
-     * @return \Logtail\Monolog\LogtailFormatter
-     */
-    protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface {
-        return new \Logtail\Monolog\LogtailFormatter();
-    }
-
-    public function getFormatter(): FormatterInterface
+    public function __construct($sourceToken, $level = Logger::DEBUG, $bubble = true, $endpoint = LogtailClient::URL, $bufferLimit = 0, $flushOnOverflow = false)
     {
-        return $this->getDefaultFormatter();
+        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint), $bufferLimit, $level, $bubble, $flushOnOverflow);
     }
+
 }
