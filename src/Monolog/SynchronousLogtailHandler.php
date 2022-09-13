@@ -57,7 +57,6 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      */
     public function handleBatch(array $records): void
     {
-        echo "handling batch";
         $formattedRecords = $this->getFormatter()->formatBatch($records);
         $this->client->send($formattedRecords);
     }
