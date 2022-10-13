@@ -16,8 +16,9 @@ namespace Logtail\Monolog;
  */
 class LogtailFormatter extends \Monolog\Formatter\JsonFormatter {
 
-    public function __construct($batchMode = self::BATCH_MODE_JSON, $appendNewline = false) {
-        parent::__construct($batchMode, $appendNewline);
+    public function __construct() {
+        parent::__construct(self::BATCH_MODE_JSON, false);
+        $this->setMaxNormalizeItemCount(PHP_INT_MAX);
     }
 
     public function format(array $record): string {
@@ -26,7 +27,8 @@ class LogtailFormatter extends \Monolog\Formatter\JsonFormatter {
 
     public function formatBatch(array $records): string
     {
-        return parent::formatBatch(array_map('self::formatRecord', $records));
+        $normalized = array_values($this->normalize(array_map('self::formatRecord', $records)));
+        return $this->toJson($normalized, true);
     }
 
     protected static function formatRecord(array $record): array
