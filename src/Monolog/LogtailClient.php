@@ -14,7 +14,8 @@ namespace Logtail\Monolog;
 /**
  * Format JSON records for Logtail
  */
-class LogtailClient {
+class LogtailClient
+{
     const URL = "https://in.logtail.com";
 
     /**
@@ -28,11 +29,12 @@ class LogtailClient {
     private $endpoint;
 
     /**
-     * @var resource $handle
+     * @var \CurlHandle $handle
      */
     private $handle = NULL;
 
-    public function __construct($sourceToken, $endpoint = self::URL) {
+    public function __construct($sourceToken, $endpoint = self::URL)
+    {
         if (!\extension_loaded('curl')) {
             throw new \LogicException('The curl extension is needed to use the LogtailHandler');
         }
@@ -41,7 +43,8 @@ class LogtailClient {
         $this->endpoint = $endpoint;
     }
 
-    public function send($data) {
+    public function send($data)
+    {
         if (is_null($this->handle)) {
             $this->initCurlHandle();
         }
@@ -55,12 +58,13 @@ class LogtailClient {
     /**
      * @return void
      */
-    private function initCurlHandle() {
+    private function initCurlHandle()
+    {
         $this->handle = \curl_init();
 
         $headers = [
             'Content-Type: application/json',
-            "Authorization: Bearer {$this->sourceToken}"
+            "Authorization: Bearer {$this->sourceToken}",
         ];
 
         \curl_setopt($this->handle, CURLOPT_URL, $this->endpoint);
