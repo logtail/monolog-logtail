@@ -42,7 +42,7 @@ class LogtailFormatter extends JsonFormatter {
         return [
             'dt' => $record->datetime,
             'message' => $record->message,
-            'level' => $record->level,
+            'level' => $record->level->name,
             'monolog' => [
                 'channel' => $record->channel,
                 'context' => $record->context,
