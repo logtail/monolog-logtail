@@ -25,7 +25,6 @@ class LogtailFormatter extends JsonFormatter {
     }
 
     public function format(LogRecord $record): string {
-        #return parent::format(self::formatRecord($record));
         $normalized = $this->normalize(self::formatRecord($record));
 
         return $this->toJson($normalized, true);
