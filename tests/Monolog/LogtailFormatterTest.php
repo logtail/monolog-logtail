@@ -51,7 +51,7 @@ class LogtailFormatterTest extends \PHPUnit\Framework\TestCase
                 extra: ['x' => 'y'],
             ),
             new \Monolog\LogRecord(
-                datetime: new \DateTimtests/Monolog/LogtailFormatterTest.phpeImmutable("2022-08-10T14:49:47.618908+00:00"),
+                datetime: new \DateTimeImmutable("2022-08-10T14:49:47.618908+00:00"),
                 channel: 'name',
                 level: \Monolog\Level::Critical,
                 message: 'second message',
