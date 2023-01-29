@@ -27,7 +27,7 @@ class LogtailFormatter extends \Monolog\Formatter\JsonFormatter {
 
     public function formatBatch(array $records): string
     {
-        $normalized = array_values($this->normalize(array_map('self::formatRecord', $records)));
+        $normalized = array_values($this->normalize(array_map('Logtail\Monolog\LogtailFormatter::formatRecord', $records)));
         return $this->toJson($normalized, true);
     }
 
