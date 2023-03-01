@@ -28,6 +28,11 @@ Install the Logtail Monolog library using composer:
 composer require logtail/monolog-logtail
 ```
 
+**Using older Monolog?** Install Logtail for Monolog 2:
+
+```bash
+composer require logtail/monolog-logtail:^2.0.0
+```
 ---
 
 # Example project
