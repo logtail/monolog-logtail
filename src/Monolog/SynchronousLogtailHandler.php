@@ -12,11 +12,18 @@
 namespace Logtail\Monolog;
 
 use Monolog\Formatter\FormatterInterface;
+use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Level;
+use Monolog\LogRecord;
+use Monolog\Processor\HostnameProcessor;
+use Monolog\Processor\IntrospectionProcessor;
+use Monolog\Processor\ProcessIdProcessor;
+use Monolog\Processor\WebProcessor;
 
 /**
  * Sends log to Logtail.
  */
-class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
+class SynchronousLogtailHandler extends AbstractProcessingHandler {
     /**
      * @var LogtailClient $client
      */
@@ -30,25 +37,25 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      */
     public function __construct(
         $sourceToken,
-        $level = \Monolog\Logger::DEBUG,
-        $bubble = true,
-        $endpoint = LogtailClient::URL
+        $level = Level::Debug,
+        bool $bubble = true,
+        string $endpoint = LogtailClient::URL
     ) {
         parent::__construct($level, $bubble);
 
         $this->client = new LogtailClient($sourceToken, $endpoint);
 
-        $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
-        $this->pushProcessor(new \Monolog\Processor\WebProcessor);
-        $this->pushProcessor(new \Monolog\Processor\ProcessIdProcessor);
-        $this->pushProcessor(new \Monolog\Processor\HostnameProcessor);
+        $this->pushProcessor(new IntrospectionProcessor($level, ['Logtail\\']));
+        $this->pushProcessor(new WebProcessor);
+        $this->pushProcessor(new ProcessIdProcessor);
+        $this->pushProcessor(new HostnameProcessor);
     }
 
     /**
-     * @param array $record
+     * @param LogRecord $record
      */
-    protected function write(array $record): void {
-        $this->client->send($record["formatted"]);
+    protected function write(LogRecord $record): void {
+        $this->client->send($record->formatted);
     }
 
     /**
@@ -62,10 +69,11 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
     }
 
     /**
-     * @return \Logtail\Monolog\LogtailFormatter
+     * @return LogtailFormatter
      */
-    protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface {
-        return new \Logtail\Monolog\LogtailFormatter();
+    protected function getDefaultFormatter(): FormatterInterface
+    {
+        return new LogtailFormatter();
     }
 
     public function getFormatter(): FormatterInterface
