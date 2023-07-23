@@ -32,13 +32,19 @@ class LogtailClient {
      */
     private $handle = NULL;
 
-    public function __construct($sourceToken, $endpoint = self::URL) {
+    /**
+     * @var array $curlOptions
+     */
+    private $curlOptions = [];
+
+    public function __construct($sourceToken, $endpoint = self::URL, $curlOptions = []) {
         if (!\extension_loaded('curl')) {
             throw new \LogicException('The curl extension is needed to use the LogtailHandler');
         }
 
         $this->sourceToken = $sourceToken;
         $this->endpoint = $endpoint;
+        $this->curlOptions = $curlOptions;
     }
 
     public function send($data) {
@@ -48,6 +54,7 @@ class LogtailClient {
 
         \curl_setopt($this->handle, CURLOPT_POSTFIELDS, $data);
         \curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt_array($this->handle, $this->curlOptions);
 
         \Monolog\Handler\Curl\Util::execute($this->handle, 5, false);
     }

@@ -26,10 +26,11 @@ class LogtailHandler extends BufferHandler
      * @param                  $endpoint        Logtail ingesting endpoint
      * @param int              $bufferLimit     How many entries should be buffered at most, beyond that the oldest items are removed from the buffer.
      * @param bool             $flushOnOverflow If true, the buffer is flushed when the max size has been reached, by default oldest entries are discarded
+     * @param array            $curlOptions     Additional options for "curl" command
      */
-    public function __construct($sourceToken, $level = Logger::DEBUG, $bubble = true, $endpoint = LogtailClient::URL, $bufferLimit = 0, $flushOnOverflow = false)
+    public function __construct($sourceToken, $level = Logger::DEBUG, $bubble = true, $endpoint = LogtailClient::URL, $bufferLimit = 0, $flushOnOverflow = false, $curlOptions = [])
     {
-        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint), $bufferLimit, $level, $bubble, $flushOnOverflow);
+        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint, $curlOptions), $bufferLimit, $level, $bubble, $flushOnOverflow);
     }
 
 }

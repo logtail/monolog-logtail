@@ -27,16 +27,18 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      * @param int $level
      * @param bool $bubble
      * @param string $endpoint
+     * @param array $curlOptions
      */
     public function __construct(
         $sourceToken,
         $level = \Monolog\Logger::DEBUG,
         $bubble = true,
-        $endpoint = LogtailClient::URL
+        $endpoint = LogtailClient::URL,
+        $curlOptions = []
     ) {
         parent::__construct($level, $bubble);
 
-        $this->client = new LogtailClient($sourceToken, $endpoint);
+        $this->client = new LogtailClient($sourceToken, $endpoint, $curlOptions);
 
         $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
         $this->pushProcessor(new \Monolog\Processor\WebProcessor);
