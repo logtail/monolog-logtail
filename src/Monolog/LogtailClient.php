@@ -16,7 +16,7 @@ namespace Logtail\Monolog;
  */
 class LogtailClient
 {
-    const URL = "https://in.logtail.com";
+    const URL = "https://in.logs.betterstack.com";
 
     /**
      * @var string $sourceToken
