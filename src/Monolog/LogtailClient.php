@@ -32,13 +32,26 @@ class LogtailClient {
      */
     private $handle = NULL;
 
-    public function __construct($sourceToken, $endpoint = self::URL) {
+    /**
+     * @var int $connectionTimeout
+     */
+    private $connectionTimeout;
+
+    /**
+     * @var int $timeout
+     */
+    private $timeout;
+
+
+    public function __construct($sourceToken, $endpoint = self::URL, $connectionTimeout = 5, $timeout = 5) {
         if (!\extension_loaded('curl')) {
             throw new \LogicException('The curl extension is needed to use the LogtailHandler');
         }
 
         $this->sourceToken = $sourceToken;
         $this->endpoint = $endpoint;
+        $this->connectionTimeout = $connectionTimeout;
+        $this->timeout = $timeout;
     }
 
     public function send($data) {
@@ -66,5 +79,8 @@ class LogtailClient {
         \curl_setopt($this->handle, CURLOPT_URL, $this->endpoint);
         \curl_setopt($this->handle, CURLOPT_POST, true);
         \curl_setopt($this->handle, CURLOPT_HTTPHEADER, $headers);
+        \curl_setopt($this->handle, CURLOPT_CONNECTTIMEOUT, $this->connectionTimeout);
+        \curl_setopt($this->handle, CURLOPT_TIMEOUT, $this->timeout);
+
     }
 }
