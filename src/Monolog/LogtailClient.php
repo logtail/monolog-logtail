@@ -17,6 +17,9 @@ namespace Logtail\Monolog;
 class LogtailClient {
     const URL = "https://in.logtail.com";
 
+    const DEFAULT_CONNECTION_TIMEOUT_SECONDS = 5;
+    const DEFAULT_TIMEOUT_SECONDS = 5;
+
     /**
      * @var string $sourceToken
      */
@@ -43,7 +46,12 @@ class LogtailClient {
     private $timeout;
 
 
-    public function __construct($sourceToken, $endpoint = self::URL, $connectionTimeout = 5, $timeout = 5) {
+    public function __construct(
+        $sourceToken,
+        $endpoint = self::URL,
+        $connectionTimeout = self::DEFAULT_CONNECTION_TIMEOUT_SECONDS,
+        $timeout = self::DEFAULT_TIMEOUT_SECONDS
+    ) {
         if (!\extension_loaded('curl')) {
             throw new \LogicException('The curl extension is needed to use the LogtailHandler');
         }

@@ -35,8 +35,8 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
         $level = \Monolog\Logger::DEBUG,
         $bubble = true,
         $endpoint = LogtailClient::URL,
-        $connectionTimeout = 5,
-        $timeout = 5
+        $connectionTimeout = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_SECONDS,
+        $timeout = LogtailClient::DEFAULT_TIMEOUT_SECONDS
     ) {
         parent::__construct($level, $bubble);
 
