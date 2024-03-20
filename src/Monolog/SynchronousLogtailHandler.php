@@ -27,20 +27,20 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      * @param int $level
      * @param bool $bubble
      * @param string $endpoint
-     * @param int $connectionTimeout
-     * @param int $timeout
+     * @param int $connectionTimeoutMs
+     * @param int $timeoutMs
      */
     public function __construct(
         $sourceToken,
         $level = \Monolog\Logger::DEBUG,
         $bubble = true,
         $endpoint = LogtailClient::URL,
-        $connectionTimeout = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_SECONDS,
-        $timeout = LogtailClient::DEFAULT_TIMEOUT_SECONDS
+        $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
+        $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS
     ) {
         parent::__construct($level, $bubble);
 
-        $this->client = new LogtailClient($sourceToken, $endpoint, $connectionTimeout, $timeout);
+        $this->client = new LogtailClient($sourceToken, $endpoint, $connectionTimeoutMs, $timeoutMs);
 
         $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
         $this->pushProcessor(new \Monolog\Processor\WebProcessor);

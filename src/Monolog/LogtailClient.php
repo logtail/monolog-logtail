@@ -17,8 +17,8 @@ namespace Logtail\Monolog;
 class LogtailClient {
     const URL = "https://in.logtail.com";
 
-    const DEFAULT_CONNECTION_TIMEOUT_SECONDS = 5;
-    const DEFAULT_TIMEOUT_SECONDS = 5;
+    const DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 5000;
+    const DEFAULT_TIMEOUT_MILLISECONDS = 5000;
 
     /**
      * @var string $sourceToken
@@ -36,21 +36,21 @@ class LogtailClient {
     private $handle = NULL;
 
     /**
-     * @var int $connectionTimeout
+     * @var int $connectionTimeoutMs
      */
-    private $connectionTimeout;
+    private $connectionTimeoutMs;
 
     /**
-     * @var int $timeout
+     * @var int $timeoutMs
      */
-    private $timeout;
+    private $timeoutMs;
 
 
     public function __construct(
         $sourceToken,
         $endpoint = self::URL,
-        $connectionTimeout = self::DEFAULT_CONNECTION_TIMEOUT_SECONDS,
-        $timeout = self::DEFAULT_TIMEOUT_SECONDS
+        $connectionTimeoutMs = self::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
+        $timeoutMs = self::DEFAULT_TIMEOUT_MILLISECONDS
     ) {
         if (!\extension_loaded('curl')) {
             throw new \LogicException('The curl extension is needed to use the LogtailHandler');
@@ -58,8 +58,8 @@ class LogtailClient {
 
         $this->sourceToken = $sourceToken;
         $this->endpoint = $endpoint;
-        $this->connectionTimeout = $connectionTimeout;
-        $this->timeout = $timeout;
+        $this->connectionTimeoutMs = $connectionTimeoutMs;
+        $this->timeoutMs = $timeoutMs;
     }
 
     public function send($data) {
@@ -87,8 +87,8 @@ class LogtailClient {
         \curl_setopt($this->handle, CURLOPT_URL, $this->endpoint);
         \curl_setopt($this->handle, CURLOPT_POST, true);
         \curl_setopt($this->handle, CURLOPT_HTTPHEADER, $headers);
-        \curl_setopt($this->handle, CURLOPT_CONNECTTIMEOUT, $this->connectionTimeout);
-        \curl_setopt($this->handle, CURLOPT_TIMEOUT, $this->timeout);
+        \curl_setopt($this->handle, CURLOPT_CONNECTTIMEOUT_MS, $this->connectionTimeoutMs);
+        \curl_setopt($this->handle, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
 
     }
 }
