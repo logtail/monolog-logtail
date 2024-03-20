@@ -17,6 +17,11 @@ Experience SQL-compatible structured log management based on ClickHouse. [Learn 
 ## Need help?
 Please let us know at [hello@betterstack.com](mailto:hello@betterstack.com). We're happy to help!
 
+**Using older Monolog?** Install Logtail for Monolog 2:
+
+```bash
+composer require logtail/monolog-logtail:^2.0.0
+```
 ---
 
 [ISC license](https://github.com/logtail/monolog-logtail/blob/master/LICENSE.md), [example project](https://github.com/logtail/monolog-logtail/tree/master/example-project)
