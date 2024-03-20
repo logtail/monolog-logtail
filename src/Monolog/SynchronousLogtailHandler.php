@@ -34,16 +34,20 @@ class SynchronousLogtailHandler extends AbstractProcessingHandler {
      * @param int $level
      * @param bool $bubble
      * @param string $endpoint
+     * @param int $connectionTimeoutMs
+     * @param int $timeoutMs
      */
     public function __construct(
         $sourceToken,
         $level = Level::Debug,
         bool $bubble = true,
-        string $endpoint = LogtailClient::URL
+        string $endpoint = LogtailClient::URL,
+        int $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
+        int $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
     ) {
         parent::__construct($level, $bubble);
 
-        $this->client = new LogtailClient($sourceToken, $endpoint);
+        $this->client = new LogtailClient($sourceToken, $endpoint, $connectionTimeoutMs, $timeoutMs);
 
         $this->pushProcessor(new IntrospectionProcessor($level, ['Logtail\\']));
         $this->pushProcessor(new WebProcessor);
