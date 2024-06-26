@@ -22,7 +22,7 @@ class LogtailHandler extends BufferHandler
     const DEFAULT_BUBBLE = true;
     const DEFAULT_BUFFER_LIMIT = 1000;
     const DEFAULT_FLUSH_ON_OVERFLOW = true;
-    const DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS = 1000;
+    const DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS = 5000;
 
     /**
      * @var int|null $alwaysFlushAfterMs
