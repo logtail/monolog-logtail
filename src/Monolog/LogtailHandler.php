@@ -76,6 +76,15 @@ class LogtailHandler extends BufferHandler
         return $return;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function flush(): void
+    {
+        parent::flush();
+        $this->setHighResolutionTimeOfLastFlush();
+    }
+
     private function setHighResolutionTimeOfLastFlush(): void
     {
         $currentHighResolutionTime = hrtime(true);
