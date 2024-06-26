@@ -17,10 +17,10 @@ final class LogtailHandlerBuilder
 {
     private $sourceToken;
     private $level = Logger::DEBUG;
-    private $bubble = true;
+    private $bubble = LogtailHandler::DEFAULT_BUBBLE;
     private $endpoint = LogtailClient::URL;
-    private $bufferLimit = 0;
-    private $flushOnOverflow = false;
+    private $bufferLimit = LogtailHandler::DEFAULT_BUFFER_LIMIT;
+    private $flushOnOverflow = LogtailHandler::DEFAULT_FLUSH_ON_OVERFLOW;
     private $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS;
     private $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS;
     private $alwaysFlushAfterMs = LogtailHandler::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS;

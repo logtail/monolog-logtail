@@ -19,6 +19,9 @@ use Monolog\Logger;
  */
 class LogtailHandler extends BufferHandler
 {
+    const DEFAULT_BUBBLE = true;
+    const DEFAULT_BUFFER_LIMIT = 1000;
+    const DEFAULT_FLUSH_ON_OVERFLOW = true;
     const DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS = 1000;
 
     /**
@@ -45,10 +48,10 @@ class LogtailHandler extends BufferHandler
     public function __construct(
         $sourceToken,
         $level = Logger::DEBUG,
-        $bubble = true,
+        $bubble = self::DEFAULT_BUBBLE,
         $endpoint = LogtailClient::URL,
-        $bufferLimit = 0,
-        $flushOnOverflow = false,
+        $bufferLimit = self::DEFAULT_BUFFER_LIMIT,
+        $flushOnOverflow = self::DEFAULT_FLUSH_ON_OVERFLOW,
         $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
         $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
         $alwaysFlushAfterMs = self::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS

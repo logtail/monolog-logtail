@@ -33,7 +33,7 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
     public function __construct(
         $sourceToken,
         $level = \Monolog\Logger::DEBUG,
-        $bubble = true,
+        $bubble = LogtailHandler::DEFAULT_BUBBLE,
         $endpoint = LogtailClient::URL,
         $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
         $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS
