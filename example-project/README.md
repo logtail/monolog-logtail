@@ -51,7 +51,7 @@ Now it’s time to create a `Logger` instance and push a `LogtailHandler` handle
 
 ```php
 $logger = new Logger("logtail-source");
-$logger->pushHandler(new LogtailHandler("<source-token>"));
+$logger->pushHandler(LogtailHandlerBuilder::withSourceToken("<source-token>")->build());
 ```
 
 Don’t forget to change `<source-token>` to your actual token which you can find in the *Basic information* section when clicking on *Edit* on your select source.
@@ -69,11 +69,11 @@ Creating multiple loggers for different channels is fairly easy:
 ```php
 # Logger for shopping cart component
 $cart_logger = new Logger("shoping-cart");
-$cart_logger->pushHandler(new LogtailHandler("<source-token>"));
+$cart_logger->pushHandler(LogtailHandlerBuilder::withSourceToken("<source-token>")->build());
 
 # Logger for payment component
 $payment_logger = new Logger("payment");
-$payment_logger->pushHandler(new LogtailHandler("<source-token>"));
+$payment_logger->pushHandler(LogtailHandlerBuilder::withSourceToken("<source-token>")->build());
 ```
 
 Then you can filter your logs using the following search formula:
