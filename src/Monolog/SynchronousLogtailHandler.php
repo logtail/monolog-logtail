@@ -16,11 +16,19 @@ use Monolog\Formatter\FormatterInterface;
 /**
  * Sends log to Logtail.
  */
-class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandler {
+class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandler
+{
+    const DEFAULT_THROW_EXCEPTION = false;
+
     /**
      * @var LogtailClient $client
      */
     private $client;
+
+    /**
+     * @var bool $throwExceptions
+     */
+    private $throwExceptions;
 
     /**
      * @param string $sourceToken
@@ -29,6 +37,7 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      * @param string $endpoint
      * @param int $connectionTimeoutMs
      * @param int $timeoutMs
+     * @param bool throwExceptions
      */
     public function __construct(
         $sourceToken,
@@ -36,11 +45,13 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
         $bubble = LogtailHandler::DEFAULT_BUBBLE,
         $endpoint = LogtailClient::URL,
         $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
-        $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS
+        $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
+        $throwExceptions = self::DEFAULT_THROW_EXCEPTION
     ) {
         parent::__construct($level, $bubble);
 
         $this->client = new LogtailClient($sourceToken, $endpoint, $connectionTimeoutMs, $timeoutMs);
+        $this->throwExceptions = $throwExceptions;
 
         $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
         $this->pushProcessor(new \Monolog\Processor\WebProcessor);
@@ -52,7 +63,15 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      * @param array $record
      */
     protected function write(array $record): void {
-        $this->client->send($record["formatted"]);
+        try {
+            $this->client->send($record["formatted"]);
+        } catch (Throwable $throwable) {
+            if ($this->throwExceptions) {
+                throw $throwable;
+            } else {
+                 trigger_error("Failed to send a single log record to Better Stack because of " . $throwable, E_USER_WARNING);
+             }
+        }
     }
 
     /**
@@ -62,7 +81,15 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
     public function handleBatch(array $records): void
     {
         $formattedRecords = $this->getFormatter()->formatBatch($records);
-        $this->client->send($formattedRecords);
+        try {
+            $this->client->send($formattedRecords);
+        } catch (\Throwable $throwable) {
+            if ($this->throwExceptions) {
+                throw $throwable;
+            } else {
+                 trigger_error("Failed to send " . count($records) . " log records to Better Stack because of " . $throwable, E_USER_WARNING);
+            }
+        }
     }
 
     /**

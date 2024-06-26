@@ -24,6 +24,7 @@ final class LogtailHandlerBuilder
     private $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS;
     private $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS;
     private $alwaysFlushAfterMs = LogtailHandler::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS;
+    private $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION;
 
     /**
      * @internal use {@see self::withSourceToken()} instead
@@ -140,6 +141,20 @@ final class LogtailHandlerBuilder
         $clone = clone $this;
         $clone->alwaysFlushAfterMs = $alwaysFlushAfterMs;
         
+        return $clone;
+    }
+
+    /**
+     * Sets whether to throw exceptions when sending logs fails.
+     *
+     * @param  bool $throwExceptions
+     * @return self Always returns new immutable instance
+     */
+    public function withExceptionThrowing($throwExceptions): self
+    {
+        $clone = clone $this;
+        $clone->throwExceptions = $throwExceptions;
+
         return $clone;
     }
 

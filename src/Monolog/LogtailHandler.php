@@ -39,11 +39,12 @@ class LogtailHandler extends BufferHandler
      * @param int|string    $level                  The minimum logging level at which this handler will be triggered
      * @param bool          $bubble                 Whether the messages that are handled can bubble up the stack or not
      * @param string        $endpoint               Logtail ingesting endpoint
-     * @param int           $bufferLimit            How many entries should be buffered at most, beyond that the oldest items are removed from the buffer.
+     * @param int           $bufferLimit            How many entries should be buffered at most, beyond that the oldest items are removed from the buffer
      * @param bool          $flushOnOverflow        If true, the buffer is flushed when the max size has been reached, by default oldest entries are discarded
      * @param int           $connectionTimeoutMs    The maximum time in milliseconds that you allow the connection phase to the server to take
      * @param int           $timeoutMs              The maximum time in milliseconds that you allow a transfer operation to take
-     * @param int|null      alwaysFlushAfterMs      The time in milliseconds after which next log record will trigger flushing all logs. Null to disable.
+     * @param int|null      $alwaysFlushAfterMs     The time in milliseconds after which next log record will trigger flushing all logs. Null to disable
+     * @param bool          $throwExceptions        Whether to throw exceptions when sending logs fails
      */
     public function __construct(
         $sourceToken,
@@ -54,9 +55,10 @@ class LogtailHandler extends BufferHandler
         $flushOnOverflow = self::DEFAULT_FLUSH_ON_OVERFLOW,
         $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
         $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
-        $alwaysFlushAfterMs = self::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS
+        $alwaysFlushAfterMs = self::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS,
+        $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION
     ) {
-        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint, $connectionTimeoutMs, $timeoutMs), $bufferLimit, $level, $bubble, $flushOnOverflow);
+        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint, $connectionTimeoutMs, $timeoutMs, $throwExceptions), $bufferLimit, $level, $bubble, $flushOnOverflow);
         $this->alwaysFlushAfterMs = $alwaysFlushAfterMs;
         $this->setHighResolutionTimeOfLastFlush();
     }
