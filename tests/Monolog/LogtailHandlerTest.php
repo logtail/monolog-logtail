@@ -5,10 +5,16 @@ namespace Logtail\Monolog;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\BufferHandler;
 
-class MockLogtailClient {
+class MockLogtailClient extends LogtailClient {
     public $capturedData = NULL;
 
-    public function send($data) {
+    public function __construct()
+    {
+        parent::__construct("test-source-token");
+    }
+
+    public function send($data): void
+    {
         $this->capturedData = $data;
     }
 }

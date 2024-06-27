@@ -7,7 +7,7 @@ require "vendor/autoload.php";
 
 # Setting logger
 use Monolog\Logger;
-use Logtail\Monolog\LogtailHandler;
+use Logtail\Monolog\LogtailHandlerBuilder;
 
 # Check for arguments
 if($argc != 2){
@@ -17,7 +17,12 @@ if($argc != 2){
 }
 
 $logger = new Logger("logtail-source");
-$logger->pushHandler(new LogtailHandler($argv[1]));
+$handler = LogtailHandlerBuilder::withSourceToken($argv[1])
+  ->withBufferLimit(100)
+  ->withFlushIntervalMilliseconds(500)
+  ->withExceptionThrowing(true)
+  ->build();
+$logger->pushHandler($handler);
 
 # Below you can see available methods that can be used to send logs to logtail.
 # Each method corresponds to Monologs log level.

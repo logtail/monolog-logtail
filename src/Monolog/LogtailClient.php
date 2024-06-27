@@ -21,29 +21,10 @@ class LogtailClient
     const DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 5000;
     const DEFAULT_TIMEOUT_MILLISECONDS = 5000;
 
-    /**
-     * @var string $sourceToken
-     */
-    private $sourceToken;
-
-    /**
-     * @var string $endpoint
-     */
-    private $endpoint;
-
-    /**
-     * @var \CurlHandle $handle
-     */
-    private $handle = NULL;
-
-    /**
-     * @var int $connectionTimeoutMs
-     */
+    private string $sourceToken;
+    private string $endpoint;
+    private \CurlHandle $handle;
     private int $connectionTimeoutMs;
-
-    /**
-     * @var int $timeoutMs
-     */
     private int $timeoutMs;
 
 
@@ -63,9 +44,9 @@ class LogtailClient
         $this->timeoutMs = $timeoutMs;
     }
 
-    public function send($data)
+    public function send($data): void
     {
-        if (is_null($this->handle)) {
+        if (!isset($this->handle)) {
             $this->initCurlHandle();
         }
 
@@ -75,10 +56,7 @@ class LogtailClient
         \Monolog\Handler\Curl\Util::execute($this->handle, 5, false);
     }
 
-    /**
-     * @return void
-     */
-    private function initCurlHandle()
+    private function initCurlHandle(): void
     {
         $this->handle = \curl_init();
 
