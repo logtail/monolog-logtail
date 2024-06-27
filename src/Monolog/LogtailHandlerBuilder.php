@@ -11,20 +11,20 @@
 
 namespace Logtail\Monolog;
 
-use Monolog\Logger;
+use Monolog\Level;
 
 final class LogtailHandlerBuilder
 {
-    private $sourceToken;
-    private $level = Logger::DEBUG;
-    private $bubble = LogtailHandler::DEFAULT_BUBBLE;
-    private $endpoint = LogtailClient::URL;
-    private $bufferLimit = LogtailHandler::DEFAULT_BUFFER_LIMIT;
-    private $flushOnOverflow = LogtailHandler::DEFAULT_FLUSH_ON_OVERFLOW;
-    private $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS;
-    private $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS;
-    private $flushIntervalMs = LogtailHandler::DEFAULT_FLUSH_INTERVAL_MILLISECONDS;
-    private $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION;
+    private string $sourceToken;
+    private Level $level = Level::Debug;
+    private bool $bubble = LogtailHandler::DEFAULT_BUBBLE;
+    private string $endpoint = LogtailClient::URL;
+    private int $bufferLimit = LogtailHandler::DEFAULT_BUFFER_LIMIT;
+    private bool $flushOnOverflow = LogtailHandler::DEFAULT_FLUSH_ON_OVERFLOW;
+    private int $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS;
+    private int $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS;
+    private ?int $flushIntervalMs = LogtailHandler::DEFAULT_FLUSH_INTERVAL_MILLISECONDS;
+    private bool $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION;
 
     /**
      * @internal use {@see self::withSourceToken()} instead
@@ -41,7 +41,7 @@ final class LogtailHandlerBuilder
      * @see    https://logs.betterstack.com/team/0/sources
      * @return self   Always returns new immutable instance
      */
-    public static function withSourceToken($sourceToken): self
+    public static function withSourceToken(string $sourceToken): self
     {
         return new self($sourceToken);
     }
@@ -49,10 +49,10 @@ final class LogtailHandlerBuilder
     /**
      * Sets the minimum logging level at which this handler will be triggered.
      *
-     * @param  int|string $level
-     * @return self       Always returns new immutable instance
+     * @param  Level $level
+     * @return self  Always returns new immutable instance
      */
-    public function withLevel($level): self
+    public function withLevel(Level $level): self
     {
         $clone = clone $this;
         $clone->level = $level;
@@ -66,7 +66,7 @@ final class LogtailHandlerBuilder
      * @param  bool $bubble
      * @return self Always returns new immutable instance
      */
-    public function withLogBubbling($bubble): self
+    public function withLogBubbling(bool $bubble): self
     {
         $clone = clone $this;
         $clone->bubble = $bubble;
@@ -80,7 +80,7 @@ final class LogtailHandlerBuilder
      * @param  int  $bufferLimit
      * @return self Always returns new immutable instance
      */
-    public function withBufferLimit($bufferLimit): self
+    public function withBufferLimit(int $bufferLimit): self
     {
         $clone = clone $this;
         $clone->bufferLimit = $bufferLimit;
@@ -94,7 +94,7 @@ final class LogtailHandlerBuilder
      * @param  bool $flushOnOverflow
      * @return self Always returns new immutable instance
      */
-    public function withFlushOnOverflow($flushOnOverflow): self
+    public function withFlushOnOverflow(bool $flushOnOverflow): self
     {
         $clone = clone $this;
         $clone->flushOnOverflow = $flushOnOverflow;
@@ -108,7 +108,7 @@ final class LogtailHandlerBuilder
      * @param  int  $connectionTimeoutMs
      * @return self Always returns new immutable instance
      */
-    public function withConnectionTimeoutMilliseconds($connectionTimeoutMs): self
+    public function withConnectionTimeoutMilliseconds(int $connectionTimeoutMs): self
     {
         $clone = clone $this;
         $clone->connectionTimeoutMs = $connectionTimeoutMs;
@@ -122,7 +122,7 @@ final class LogtailHandlerBuilder
      * @param  int  $timeoutMs
      * @return self Always returns new immutable instance
      */
-    public function withTimeoutMilliseconds($timeoutMs): self
+    public function withTimeoutMilliseconds(int $timeoutMs): self
     {
         $clone = clone $this;
         $clone->timeoutMs = $timeoutMs;
@@ -136,7 +136,7 @@ final class LogtailHandlerBuilder
      * @param  int|null $flushIntervalMs
      * @return self     Always returns new immutable instance
      */
-    public function withAlwaysFlushingEveryMilliseconds($flushIntervalMs): self
+    public function withFlushIntervalMilliseconds(?int $flushIntervalMs): self
     {
         $clone = clone $this;
         $clone->flushIntervalMs = $flushIntervalMs;
@@ -150,7 +150,7 @@ final class LogtailHandlerBuilder
      * @param  bool $throwExceptions
      * @return self Always returns new immutable instance
      */
-    public function withExceptionThrowing($throwExceptions): self
+    public function withExceptionThrowing(bool $throwExceptions): self
     {
         $clone = clone $this;
         $clone->throwExceptions = $throwExceptions;

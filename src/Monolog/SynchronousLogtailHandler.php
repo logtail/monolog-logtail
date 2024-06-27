@@ -12,27 +12,27 @@
 namespace Logtail\Monolog;
 
 use Monolog\Formatter\FormatterInterface;
+use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Level;
+use Monolog\LogRecord;
+use Monolog\Processor\HostnameProcessor;
+use Monolog\Processor\IntrospectionProcessor;
+use Monolog\Processor\ProcessIdProcessor;
+use Monolog\Processor\WebProcessor;
 
 /**
  * Sends log to Logtail.
  */
-class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandler
+class SynchronousLogtailHandler extends AbstractProcessingHandler
 {
     const DEFAULT_THROW_EXCEPTION = false;
 
-    /**
-     * @var LogtailClient $client
-     */
-    private $client;
-
-    /**
-     * @var bool $throwExceptions
-     */
-    private $throwExceptions;
+    private LogtailClient $client;
+    private bool $throwExceptions;
 
     /**
      * @param string $sourceToken
-     * @param int $level
+     * @param int|string|Level $level
      * @param bool $bubble
      * @param string $endpoint
      * @param int $connectionTimeoutMs
@@ -40,31 +40,31 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
      * @param bool throwExceptions
      */
     public function __construct(
-        $sourceToken,
-        $level = \Monolog\Logger::DEBUG,
-        $bubble = LogtailHandler::DEFAULT_BUBBLE,
-        $endpoint = LogtailClient::URL,
-        $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
-        $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
-        $throwExceptions = self::DEFAULT_THROW_EXCEPTION
+        string $sourceToken,
+        int|string|Level $level = Level::Debug,
+        bool $bubble = LogtailHandler::DEFAULT_BUBBLE,
+        string $endpoint = LogtailClient::URL,
+        int $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
+        int $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
+        bool $throwExceptions = self::DEFAULT_THROW_EXCEPTION
     ) {
         parent::__construct($level, $bubble);
 
         $this->client = new LogtailClient($sourceToken, $endpoint, $connectionTimeoutMs, $timeoutMs);
         $this->throwExceptions = $throwExceptions;
 
-        $this->pushProcessor(new \Monolog\Processor\IntrospectionProcessor($level, ['Logtail\\']));
-        $this->pushProcessor(new \Monolog\Processor\WebProcessor);
-        $this->pushProcessor(new \Monolog\Processor\ProcessIdProcessor);
-        $this->pushProcessor(new \Monolog\Processor\HostnameProcessor);
+        $this->pushProcessor(new IntrospectionProcessor($level, ['Logtail\\']));
+        $this->pushProcessor(new WebProcessor);
+        $this->pushProcessor(new ProcessIdProcessor);
+        $this->pushProcessor(new HostnameProcessor);
     }
 
     /**
-     * @param array $record
+     * @param LogRecord $record
      */
-    protected function write(array $record): void {
+    protected function write(LogRecord $record): void {
         try {
-            $this->client->send($record["formatted"]);
+            $this->client->send($record->formatted);
         } catch (Throwable $throwable) {
             if ($this->throwExceptions) {
                 throw $throwable;
@@ -93,10 +93,11 @@ class SynchronousLogtailHandler extends \Monolog\Handler\AbstractProcessingHandl
     }
 
     /**
-     * @return \Logtail\Monolog\LogtailFormatter
+     * @return LogtailFormatter
      */
-    protected function getDefaultFormatter(): \Monolog\Formatter\FormatterInterface {
-        return new \Logtail\Monolog\LogtailFormatter();
+    protected function getDefaultFormatter(): FormatterInterface
+    {
+        return new LogtailFormatter();
     }
 
     public function getFormatter(): FormatterInterface

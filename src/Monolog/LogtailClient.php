@@ -14,43 +14,25 @@ namespace Logtail\Monolog;
 /**
  * Format JSON records for Logtail
  */
-class LogtailClient {
-    const URL = "https://in.logtail.com";
+class LogtailClient
+{
+    const URL = "https://in.logs.betterstack.com";
 
     const DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 5000;
     const DEFAULT_TIMEOUT_MILLISECONDS = 5000;
 
-    /**
-     * @var string $sourceToken
-     */
-    private $sourceToken;
-
-    /**
-     * @var string $endpoint
-     */
-    private $endpoint;
-
-    /**
-     * @var resource $handle
-     */
-    private $handle = NULL;
-
-    /**
-     * @var int $connectionTimeoutMs
-     */
-    private $connectionTimeoutMs;
-
-    /**
-     * @var int $timeoutMs
-     */
-    private $timeoutMs;
+    private string $sourceToken;
+    private string $endpoint;
+    private \CurlHandle $handle;
+    private int $connectionTimeoutMs;
+    private int $timeoutMs;
 
 
     public function __construct(
         $sourceToken,
         $endpoint = self::URL,
-        $connectionTimeoutMs = self::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
-        $timeoutMs = self::DEFAULT_TIMEOUT_MILLISECONDS
+        int $connectionTimeoutMs = self::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
+        int $timeoutMs = self::DEFAULT_TIMEOUT_MILLISECONDS,
     ) {
         if (!\extension_loaded('curl')) {
             throw new \LogicException('The curl extension is needed to use the LogtailHandler');
@@ -62,8 +44,9 @@ class LogtailClient {
         $this->timeoutMs = $timeoutMs;
     }
 
-    public function send($data) {
-        if (is_null($this->handle)) {
+    public function send($data): void
+    {
+        if (!isset($this->handle)) {
             $this->initCurlHandle();
         }
 
@@ -73,15 +56,13 @@ class LogtailClient {
         \Monolog\Handler\Curl\Util::execute($this->handle, 5, false);
     }
 
-    /**
-     * @return void
-     */
-    private function initCurlHandle() {
+    private function initCurlHandle(): void
+    {
         $this->handle = \curl_init();
 
         $headers = [
             'Content-Type: application/json',
-            "Authorization: Bearer {$this->sourceToken}"
+            "Authorization: Bearer {$this->sourceToken}",
         ];
 
         \curl_setopt($this->handle, CURLOPT_URL, $this->endpoint);
