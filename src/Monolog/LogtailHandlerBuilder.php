@@ -23,7 +23,7 @@ final class LogtailHandlerBuilder
     private $flushOnOverflow = LogtailHandler::DEFAULT_FLUSH_ON_OVERFLOW;
     private $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS;
     private $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS;
-    private $alwaysFlushAfterMs = LogtailHandler::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS;
+    private $flushIntervalMs = LogtailHandler::DEFAULT_FLUSH_INTERVAL_MILLISECONDS;
     private $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION;
 
     /**
@@ -133,13 +133,13 @@ final class LogtailHandlerBuilder
     /**
      * Set the time in milliseconds after which next log record will trigger flushing all logs. Null to disable.
      *
-     * @param  int|null $alwaysFlushAfterMs
+     * @param  int|null $flushIntervalMs
      * @return self     Always returns new immutable instance
      */
-    public function withAlwaysFlushingEveryMilliseconds($alwaysFlushAfterMs): self
+    public function withAlwaysFlushingEveryMilliseconds($flushIntervalMs): self
     {
         $clone = clone $this;
-        $clone->alwaysFlushAfterMs = $alwaysFlushAfterMs;
+        $clone->flushIntervalMs = $flushIntervalMs;
         
         return $clone;
     }
@@ -174,7 +174,7 @@ final class LogtailHandlerBuilder
             $this->flushOnOverflow,
             $this->connectionTimeoutMs,
             $this->timeoutMs,
-            $this->alwaysFlushAfterMs
+            $this->flushIntervalMs
         );
     }
 }

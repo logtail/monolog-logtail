@@ -22,12 +22,12 @@ class LogtailHandler extends BufferHandler
     const DEFAULT_BUBBLE = true;
     const DEFAULT_BUFFER_LIMIT = 1000;
     const DEFAULT_FLUSH_ON_OVERFLOW = true;
-    const DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS = 5000;
+    const DEFAULT_FLUSH_INTERVAL_MILLISECONDS = 5000;
 
     /**
-     * @var int|null $alwaysFlushAfterMs
+     * @var int|null $flushIntervalMs
      */
-    private $alwaysFlushAfterMs;
+    private $flushIntervalMs;
 
     /**
      * @var int|float|null highResolutionTimeOfNextFlush
@@ -43,7 +43,7 @@ class LogtailHandler extends BufferHandler
      * @param bool          $flushOnOverflow        If true, the buffer is flushed when the max size has been reached, by default oldest entries are discarded
      * @param int           $connectionTimeoutMs    The maximum time in milliseconds that you allow the connection phase to the server to take
      * @param int           $timeoutMs              The maximum time in milliseconds that you allow a transfer operation to take
-     * @param int|null      $alwaysFlushAfterMs     The time in milliseconds after which next log record will trigger flushing all logs. Null to disable
+     * @param int|null      $flushIntervalMs        The time in milliseconds after which next log record will trigger flushing all logs. Null to disable
      * @param bool          $throwExceptions        Whether to throw exceptions when sending logs fails
      */
     public function __construct(
@@ -55,11 +55,11 @@ class LogtailHandler extends BufferHandler
         $flushOnOverflow = self::DEFAULT_FLUSH_ON_OVERFLOW,
         $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
         $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
-        $alwaysFlushAfterMs = self::DEFAULT_ALWAYS_FLUSH_AFTER_MILLISECONDS,
+        $flushIntervalMs = self::DEFAULT_FLUSH_INTERVAL_MILLISECONDS,
         $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION
     ) {
         parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint, $connectionTimeoutMs, $timeoutMs, $throwExceptions), $bufferLimit, $level, $bubble, $flushOnOverflow);
-        $this->alwaysFlushAfterMs = $alwaysFlushAfterMs;
+        $this->flushIntervalMs = $flushIntervalMs;
         $this->setHighResolutionTimeOfLastFlush();
     }
 
@@ -90,13 +90,13 @@ class LogtailHandler extends BufferHandler
     private function setHighResolutionTimeOfLastFlush(): void
     {
         $currentHighResolutionTime = hrtime(true);
-        if ($this->alwaysFlushAfterMs === null || $currentHighResolutionTime === false) {
+        if ($this->flushIntervalMs === null || $currentHighResolutionTime === false) {
             $this->highResolutionTimeOfNextFlush = null;
 
             return;
         }
 
-        // hrtime(true) returns nanoseconds, converting alwaysFlushAfterMs from milliseconds to nanoseconds
-        $this->highResolutionTimeOfNextFlush = $currentHighResolutionTime + $this->alwaysFlushAfterMs * 1e+6;
+        // hrtime(true) returns nanoseconds, converting flushIntervalMs from milliseconds to nanoseconds
+        $this->highResolutionTimeOfNextFlush = $currentHighResolutionTime + $this->flushIntervalMs * 1e+6;
     }
 }
