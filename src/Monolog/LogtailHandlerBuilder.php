@@ -136,7 +136,7 @@ final class LogtailHandlerBuilder
      * @param  int|null $flushIntervalMs
      * @return self     Always returns new immutable instance
      */
-    public function withAlwaysFlushingEveryMilliseconds($flushIntervalMs): self
+    public function withFlushIntervalMilliseconds($flushIntervalMs): self
     {
         $clone = clone $this;
         $clone->flushIntervalMs = $flushIntervalMs;
