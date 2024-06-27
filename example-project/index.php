@@ -20,6 +20,7 @@ $logger = new Logger("logtail-source");
 $handler = LogtailHandlerBuilder::withSourceToken($argv[1])
   ->withBufferLimit(100)
   ->withAlwaysFlushingEveryMilliseconds(500)
+  ->withExceptionThrowing(true)
   ->build();
 $logger->pushHandler($handler);
 
