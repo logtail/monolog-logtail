@@ -47,6 +47,20 @@ final class LogtailHandlerBuilder
     }
 
     /**
+     * Sets the endpoint URL to send logs to.
+     *
+     * @param  string $endpoint
+     * @return self   Always returns new immutable instance
+     */
+    public function withEndpoint($endpoint): self
+    {
+        $clone = clone $this;
+        $clone->endpoint = $endpoint;
+
+        return $clone;
+    }
+
+    /**
      * Sets the minimum logging level at which this handler will be triggered.
      *
      * @param  int|string $level
