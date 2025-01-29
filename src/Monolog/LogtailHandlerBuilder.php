@@ -52,7 +52,7 @@ final class LogtailHandlerBuilder
      * @param  string $endpoint
      * @return self   Always returns new immutable instance
      */
-    public function withEndpoint($endpoint): self
+    public function withEndpoint(string $endpoint): self
     {
         $clone = clone $this;
         $clone->endpoint = $endpoint;
