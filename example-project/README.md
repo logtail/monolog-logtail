@@ -16,10 +16,10 @@ This command will install all dependencies from `composer.json` file and lock th
  To run the example application, simply run the following command:
 
 ```bash
-php index.php <source-token>
+php index.php <source-token> <source-endpoint>
 ```
 
-*Don't forget to replace `<source-token>` with your actual source token which you can find by going to logtail.com -> sources -> edit.*
+*Don't forget to replace `<source-token>` with your actual source token, and `<source-endpoint>` with the URL of your ingesting endpoint (eg. `https://in.logs.betterstack.com`), which you can find by going to telemetry.betterstack.com -> sources -> edit.*
 
 You should see the following output:
 ```text
@@ -51,10 +51,14 @@ Now it’s time to create a `Logger` instance and push a `LogtailHandler` handle
 
 ```php
 $logger = new Logger("logtail-source");
-$logger->pushHandler(LogtailHandlerBuilder::withSourceToken("<source-token>")->build());
+$logger->pushHandler(
+  LogtailHandlerBuilder::withSourceToken("<source-token>")
+    ->withEndpoint("<source-endpoint>")
+    ->build()
+);
 ```
 
-Don’t forget to change `<source-token>` to your actual token which you can find in the *Basic information* section when clicking on *Edit* on your select source.
+*Don't forget to replace `<source-token>` with your actual source token, and `<source-endpoint>` with the URL of your ingesting endpoint (eg. `https://in.logs.betterstack.com`), which you can find by going to telemetry.betterstack.com -> sources -> edit.*
 
 Also, make sure that the `Logger` instance is accessible from all the branches of your application in which you wish to use the logger.
 
