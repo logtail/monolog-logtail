@@ -10,14 +10,15 @@ use Monolog\Logger;
 use Logtail\Monolog\LogtailHandlerBuilder;
 
 # Check for arguments
-if($argc != 2){
-    # No argument was provided
-    echo "No source token was provided. Please, run the script as followed:\n php index.php <source-token>\n";
+if($argc != 3){
+    # None or one argument provided
+    echo "Not enough arguments. Please, run the script as followed:\n php index.php <source-token> <source-endpoint>\n e.g. php index.php MySourceToken123 https://s12345.my-logs.bettestackdata.com\n";
     exit;
 }
 
 $logger = new Logger("logtail-source");
 $handler = LogtailHandlerBuilder::withSourceToken($argv[1])
+  ->withEndpoint($argv[2])
   ->withBufferLimit(100)
   ->withFlushIntervalMilliseconds(500)
   ->withExceptionThrowing(true)
@@ -25,7 +26,7 @@ $handler = LogtailHandlerBuilder::withSourceToken($argv[1])
 $logger->pushHandler($handler);
 
 # Below you can see available methods that can be used to send logs to logtail.
-# Each method corresponds to Monologs log level.
+# Each method corresponds to Monolog's log level.
 # You can also add additional context information in form of an array to any logging method and pass it as the
 # second argument of the select method (as shown in the warn() method ).
 
@@ -33,7 +34,7 @@ $logger->pushHandler($handler);
 $logger->debug("Logtail logger is ready!");
 
 # Send information about interesting events using info() method
-$logger->info("An interesting event occured!");
+$logger->info("An interesting event occurred!");
 
 # Send information about normal but significant events using notice() method
 $logger->notice("Sending notice");
@@ -54,10 +55,10 @@ $logger->error("Oops! An runtime ERROR occurred!");
 $logger->critical("Oh no! An critical event occurred!");
 
 # Send an alert message about events for which action must be taken immediately using alert() method
-$logger->alert("Something terrible happend! Imidiate action is required!");
+$logger->alert("Something terrible happened! Immediate action is required!");
 
 # Send an emergency message about events that forced the application to crash using emergency() method 
-$logger->emergency("Application just crashed! Imidiate action is required!");
+$logger->emergency("Application just crashed! Immediate action is required!");
 
 
 echo "All done, you can check your logs in the control panel. \n";
