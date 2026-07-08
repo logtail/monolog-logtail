@@ -20,6 +20,8 @@ class LogtailClient
 
     const DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 5000;
     const DEFAULT_TIMEOUT_MILLISECONDS = 5000;
+    const MAX_SEND_ATTEMPTS = 3;
+    const RETRY_BACKOFF_MILLISECONDS = 100;
 
     private string $sourceToken;
     private string $endpoint;
@@ -46,14 +48,34 @@ class LogtailClient
 
     public function send($data): void
     {
-        if (!isset($this->handle)) {
-            $this->initCurlHandle();
+        for ($attempt = 1; ; $attempt++) {
+            if (!isset($this->handle)) {
+                $this->initCurlHandle();
+            }
+
+            \curl_setopt($this->handle, CURLOPT_POSTFIELDS, $data);
+            \curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, true);
+
+            try {
+                $this->execute();
+                return;
+            } catch (\RuntimeException $exception) {
+                // Util::execute throws only on transport failures (not HTTP status), most often a
+                // reused keep-alive connection the server closed. Reconnect on a fresh handle and retry.
+                unset($this->handle);
+
+                if ($attempt >= self::MAX_SEND_ATTEMPTS) {
+                    throw $exception;
+                }
+
+                \usleep($attempt * self::RETRY_BACKOFF_MILLISECONDS * 1000);
+            }
         }
+    }
 
-        \curl_setopt($this->handle, CURLOPT_POSTFIELDS, $data);
-        \curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, true);
-
-        \Monolog\Handler\Curl\Util::execute($this->handle, 5, false);
+    protected function execute(): void
+    {
+        \Monolog\Handler\Curl\Util::execute($this->handle, 1, false);
     }
 
     private function initCurlHandle(): void
