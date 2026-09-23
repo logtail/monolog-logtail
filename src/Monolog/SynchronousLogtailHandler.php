@@ -65,7 +65,7 @@ class SynchronousLogtailHandler extends AbstractProcessingHandler
     protected function write(LogRecord $record): void {
         try {
             $this->client->send($record->formatted);
-        } catch (Throwable $throwable) {
+        } catch (\Throwable $throwable) {
             if ($this->throwExceptions) {
                 throw $throwable;
             } else {
