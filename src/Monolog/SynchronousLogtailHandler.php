@@ -93,6 +93,22 @@ class SynchronousLogtailHandler extends AbstractProcessingHandler
     }
 
     /**
+     * Long-running workers (Laravel Octane calls Logger::reset() before every request) must not
+     * carry the connection across requests: one that idled through the previous boundary may
+     * already be dead on the other side, and a write into it stalls until the timeout.
+     */
+    public function reset(): void
+    {
+        parent::reset();
+        $this->client->close();
+    }
+
+    public function close(): void
+    {
+        $this->client->close();
+    }
+
+    /**
      * @return LogtailFormatter
      */
     protected function getDefaultFormatter(): FormatterInterface

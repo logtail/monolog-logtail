@@ -64,4 +64,25 @@ class LogtailClientTest extends TestCase
             $this->assertSame(LogtailClient::MAX_SEND_ATTEMPTS, $client->executeCalls);
         }
     }
+
+    public function testReusesTheConnectionAcrossSends(): void
+    {
+        $client = new RetryProbeLogtailClient(0);
+
+        $client->send('{"message":"hi"}');
+        $client->send('{"message":"hi again"}');
+
+        $this->assertCount(1, \array_unique(\array_map('spl_object_id', $client->handles)));
+    }
+
+    public function testCloseDropsTheConnectionSoTheNextSendOpensAFreshOne(): void
+    {
+        $client = new RetryProbeLogtailClient(0);
+
+        $client->send('{"message":"hi"}');
+        $client->close();
+        $client->send('{"message":"hi again"}');
+
+        $this->assertCount(2, \array_unique(\array_map('spl_object_id', $client->handles)));
+    }
 }

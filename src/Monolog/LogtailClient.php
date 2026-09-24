@@ -73,6 +73,14 @@ class LogtailClient
         }
     }
 
+    /**
+     * Drops the connection; the next send() opens a fresh one.
+     */
+    public function close(): void
+    {
+        unset($this->handle);
+    }
+
     protected function execute(): void
     {
         \Monolog\Handler\Curl\Util::execute($this->handle, 1, false);

@@ -19,6 +19,30 @@ class MockLogtailClient extends LogtailClient {
     }
 }
 
+class ConnectionProbeLogtailClient extends LogtailClient {
+    public array $sent = [];
+
+    public function __construct()
+    {
+        parent::__construct("test-source-token");
+    }
+
+    public function send($data): void
+    {
+        $this->sent[] = $data;
+        parent::send($data);
+    }
+
+    protected function execute(): void
+    {
+    }
+
+    public function hasConnection(): bool
+    {
+        return (new \ReflectionProperty(LogtailClient::class, 'handle'))->isInitialized($this);
+    }
+}
+
 class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
     protected function setUp(): void
     {
@@ -126,5 +150,54 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(0, json_last_error(), "The formatted data is not valid JSON");
         $this->assertTrue(is_array($decoded), "Expected array of logs");
         $this->assertCount(2, $decoded, "Expected two logs");
+    }
+
+    public function testSynchronousHandlerResetDropsTheConnection() {
+        $handler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
+        $client = new ConnectionProbeLogtailClient;
+        (function() use ($client) { $this->client = $client; })->call($handler);
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+        $this->assertTrue($client->hasConnection());
+
+        // what Laravel Octane does to every logger before each request
+        $logger->reset();
+
+        $this->assertFalse($client->hasConnection());
+    }
+
+    public function testSynchronousHandlerCloseDropsTheConnection() {
+        $handler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
+        $client = new ConnectionProbeLogtailClient;
+        (function() use ($client) { $this->client = $client; })->call($handler);
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+        $this->assertTrue($client->hasConnection());
+
+        $logger->close();
+
+        $this->assertFalse($client->hasConnection());
+    }
+
+    public function testBufferedHandlerResetFlushesThenDropsTheConnection() {
+        $synchronousHandler = new \Logtail\Monolog\SynchronousLogtailHandler('sourceTokenXYZ');
+        $handler = new LogtailHandler('sourceTokenXYZ');
+        $client = new ConnectionProbeLogtailClient;
+        (function() use ($client) { $this->client = $client; })->call($synchronousHandler);
+        (function() use ($synchronousHandler) { $this->handler = $synchronousHandler; })->call($handler);
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+        $this->assertSame([], $client->sent);
+
+        $logger->reset();
+
+        $this->assertCount(1, $client->sent);
+        $this->assertFalse($client->hasConnection());
     }
 }
