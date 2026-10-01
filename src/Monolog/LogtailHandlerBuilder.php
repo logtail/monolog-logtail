@@ -188,7 +188,8 @@ final class LogtailHandlerBuilder
             $this->flushOnOverflow,
             $this->connectionTimeoutMs,
             $this->timeoutMs,
-            $this->flushIntervalMs
+            $this->flushIntervalMs,
+            $this->throwExceptions
         );
     }
 }
