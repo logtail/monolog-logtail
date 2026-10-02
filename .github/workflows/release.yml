@@ -1,0 +1,213 @@
+# Releases logtail/monolog-logtail, the way logtail-ruby-rails and logback-logtail release from theirs.
+# Packagist builds the package straight from this repository's tags: the GitHub hook installed on
+# packagist.org tells it about every push, tags included, so a release is nothing more than a tag and a
+# GitHub release. There is no version file to bump and no credentials are needed. This workflow pushes
+# the tag, creates the release and then waits until Packagist serves the new version from the tagged
+# commit, so a release that composer cannot install yet does not pass as done.
+#
+# Repository settings this relies on: GitHub Actions may push tags (a tag ruleset needs the GitHub
+# Actions app among its bypass actors) and the Packagist hook stays in the repository's webhooks. If
+# Packagist shows "This package is not auto-updated" on https://packagist.org/packages/logtail/monolog-logtail,
+# the hook is gone: reconnect it there and press Update.
+#
+# Release: Actions → Release → Run workflow from master (or from a maintenance branch such as 2.x for
+# the Monolog 2 line), pick patch or minor. The workflow runs the tests, takes the newest vX.Y.Z tag on
+# that branch, bumps it, tags HEAD, pushes the tag, creates a GitHub release with auto-generated notes
+# and waits up to 15 minutes for Packagist to pick the version up; edit the release notes afterwards
+# if needed. It refuses to release when nothing in src/ or composer.json changed since the newest tag.
+#
+# Retry: run "retry" from the same branch. It tags nothing and only checks that the newest tag is
+# complete: no change in src/ or composer.json since it, a GitHub release for it (created if it is
+# still missing) and Packagist serving it from the tagged commit. When all of that already holds it
+# passes, so it can also be used as a plain check of the latest release. Running patch or minor again
+# would release the next version instead.
+#
+# Dry run: computes the next version and runs the retry checks for the newest tag without creating
+# anything. Every push that touches this file runs one, so a change to the workflow proves itself on
+# its pull request; a dry run can also be dispatched from any branch.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "patch or minor: tag and publish. retry: finish or check the latest release."
+        type: choice
+        options: [patch, minor, retry]
+        required: true
+      dry_run:
+        description: "Dry run: compute the next version and check the latest release, publish nothing"
+        type: boolean
+        default: false
+  push:
+    paths:
+      - .github/workflows/release.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # A push runs the dry run of a patch release; a dispatch does what its inputs say
+  DRY_RUN: ${{ github.event_name == 'push' || inputs.dry_run }}
+  RELEASE: ${{ inputs.release || 'patch' }}
+  PACKAGE: logtail/monolog-logtail
+
+jobs:
+  verify:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP with CURL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: curl
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run test suite
+        run: composer run-script test
+
+  release:
+    name: Tag and publish
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # Packagist gets up to 15 minutes to pick the version up
+    permissions:
+      contents: write # pushes the tag and creates the GitHub release
+
+    steps:
+      - name: Releases run from master or a maintenance branch
+        if: ${{ env.DRY_RUN != 'true' && github.ref != 'refs/heads/master' && !endsWith(github.ref, '.x') }}
+        run: |
+          echo "::error::Dispatch the release from master or a maintenance branch such as 2.x, not from $GITHUB_REF_NAME."
+          exit 1
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the version comes from the tags on this branch
+
+      - name: Determine version
+        id: version
+        run: |
+          # The newest release tag reachable from HEAD, so that 2.x continues v2 while master continues v3
+          latest=$(git tag --merged HEAD --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+          if [ -z "$latest" ]; then
+            echo "::error::No vX.Y.Z tag is reachable from $GITHUB_REF_NAME."
+            exit 1
+          fi
+          current=${latest#v}
+
+          echo "Changes in src/ and composer.json since $latest:"
+          if git diff --quiet "$latest" HEAD -- src composer.json; then
+            unreleased=false
+            echo "  none"
+          else
+            unreleased=true
+            git diff --stat "$latest" HEAD -- src composer.json
+          fi
+
+          if [ "$RELEASE" = retry ]; then
+            if [ "$unreleased" = true ]; then
+              echo "::error::$latest is not the latest state of src/ and composer.json, there is nothing to retry. Run patch or minor to release the changes."
+              exit 1
+            fi
+            version=$current
+          else
+            if [ "$unreleased" = false ]; then
+              message="Nothing in src/ or composer.json changed since $latest, there is nothing new to release. Run retry to finish or check $latest."
+              if [ "$DRY_RUN" = true ]; then
+                echo "::warning::$message"
+              else
+                echo "::error::$message"
+                exit 1
+              fi
+            fi
+            IFS=. read -r major minor patch <<< "$current"
+            if [ "$RELEASE" = minor ]; then
+              version="$major.$((minor + 1)).0"
+            else
+              version="$major.$minor.$((patch + 1))"
+            fi
+            if git rev-parse -q --verify "refs/tags/v$version" > /dev/null; then
+              echo "::error::v$version is tagged already, on a commit that $GITHUB_REF_NAME does not contain."
+              exit 1
+            fi
+          fi
+
+          echo "$current -> $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # What the checks below look at: the new tag for a release, the newest tag for a retry or a dry run
+          if [ "$RELEASE" = retry ] || [ "$DRY_RUN" = true ]; then
+            echo "check=$current" >> "$GITHUB_OUTPUT"
+          else
+            echo "check=$version" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag
+        if: ${{ env.DRY_RUN != 'true' && env.RELEASE != 'retry' }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          # The push is what the Packagist hook reacts to
+          git push origin "v$VERSION"
+
+      - name: Create GitHub release
+        env:
+          VERSION: ${{ steps.version.outputs.check }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "Release v$VERSION exists."
+          elif [ "$DRY_RUN" = true ]; then
+            echo "::warning::v$VERSION has no GitHub release. Run retry to create it."
+          else
+            # --verify-tag: only ever attach to a tag that is pushed already, never create one here.
+            gh release create "v$VERSION" --verify-tag --generate-notes
+          fi
+
+      - name: Wait for Packagist
+        env:
+          VERSION: ${{ steps.version.outputs.check }}
+        run: |
+          # repo.packagist.org/p2 is the metadata composer installs from. It is minified: every entry only
+          # lists what differs from the previous one, so the entries are expanded before the lookup.
+          export TAG="v$VERSION"
+          expected=$(git rev-parse "$TAG^{commit}")
+          url="https://repo.packagist.org/p2/$PACKAGE.json"
+          deadline=$((SECONDS + 15 * 60))
+          while :; do
+            reference=$(curl --fail --silent --show-error --header 'Cache-Control: no-cache' "$url" \
+              | jq -r '[foreach .packages[env.PACKAGE][] as $v ({}; . + $v | with_entries(select(.value != "__unset")))]
+                  | map(select(.version == env.TAG)) | first | .source.reference // empty' || true)
+            if [ "$reference" = "$expected" ]; then
+              echo "Packagist serves $PACKAGE $TAG from $expected: https://packagist.org/packages/$PACKAGE#$TAG"
+              exit 0
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              break
+            fi
+            echo "Packagist serves $TAG from ${reference:-nothing yet}, waiting for $expected..."
+            sleep 30
+          done
+          echo "::error::Packagist does not serve $PACKAGE $TAG from $expected after 15 minutes (it has ${reference:-no such version})."
+          echo "::error::Check the hook on https://packagist.org/packages/$PACKAGE (press Update there if it says the package is not auto-updated), then run retry."
+          exit 1
