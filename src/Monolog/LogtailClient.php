@@ -95,13 +95,16 @@ class LogtailClient
         }
 
         $message = "{$this->endpoint} answered HTTP {$statusCode}";
-        if ($statusCode === 401 || $statusCode === 403) {
-            $message .= ": the source token or the ingesting host is wrong. Copy both from your source's settings in Better Stack.";
-        } elseif ($responseBody !== '') {
+        if ($responseBody !== '') {
             $message .= ': ' . \substr($responseBody, 0, self::RESPONSE_EXCERPT_BYTES);
             if (\strlen($responseBody) > self::RESPONSE_EXCERPT_BYTES) {
                 $message .= '...';
             }
+        }
+        // A paused source or a failing custom bucket gets a 401 too, with its own reason; a plain
+        // "Unauthorized" means the ingesting host doesn't know the token.
+        if ($statusCode === 401 && (\json_decode($responseBody, true)['error'] ?? null) === 'Unauthorized') {
+            $message .= ". Check that the source token and the ingesting host match your source's settings in Better Stack.";
         }
 
         throw new LogtailIngestException($message, $statusCode);
