@@ -14,12 +14,6 @@ Experience SQL-compatible structured log management based on ClickHouse. [Learn 
 
 [Getting started ⇗](https://betterstack.com/docs/logs/php/)
 
-## When Better Stack rejects your logs
-
-If Better Stack answers with an HTTP error, for example 401 when the source token or the ingesting host is wrong, the logs are dropped and the handler raises a PHP warning (`E_USER_WARNING`) naming the status and the endpoint. It warns every time it sends logs, so about once per request, until you copy the source token and the ingesting host from your source's settings in Better Stack. With `withExceptionThrowing(true)` it throws a `Logtail\Monolog\LogtailIngestException` instead, with the HTTP status as its code.
-
-To keep an environment without a working Better Stack source quiet, for example local development, don't add the handler there.
-
 ## Need help?
 Please let us know at [hello@betterstack.com](mailto:hello@betterstack.com). We're happy to help!
 
