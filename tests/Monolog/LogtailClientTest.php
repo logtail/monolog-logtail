@@ -118,13 +118,46 @@ class LogtailClientTest extends TestCase
             $this->fail('Expected LogtailIngestException for HTTP 401');
         } catch (LogtailIngestException $exception) {
             $this->assertSame(
-                "{$endpoint} answered HTTP 401: the source token or the ingesting host is wrong. Copy both from your source's settings in Better Stack.",
+                "{$endpoint} answered HTTP 401: {\"error\": \"Unauthorized\"}. Check that the source token and the ingesting host match your source's settings in Better Stack.",
                 $exception->getMessage()
             );
             $this->assertSame(401, $exception->getCode());
         }
 
         $this->assertSame(1, $this->ingest->requestCount());
+    }
+
+    public function testPausedSourceThrowsWithBetterStacksReason(): void
+    {
+        $this->ingest = new IngestStub;
+        $endpoint = $this->ingest->endpointAnswering('401-paused');
+        $client = new LogtailClient("test-source-token", $endpoint);
+
+        try {
+            $client->send('{"message":"hi"}');
+            $this->fail('Expected LogtailIngestException for HTTP 401');
+        } catch (LogtailIngestException $exception) {
+            $this->assertSame(
+                "{$endpoint} answered HTTP 401: {\"error\": \"This source has been paused, will not accept new data\"}",
+                $exception->getMessage()
+            );
+            $this->assertSame(401, $exception->getCode());
+        }
+    }
+
+    public function testQuotaExceededThrowsWithBetterStacksReason(): void
+    {
+        $this->ingest = new IngestStub;
+        $endpoint = $this->ingest->endpointAnswering(402);
+        $client = new LogtailClient("test-source-token", $endpoint);
+
+        try {
+            $client->send('{"message":"hi"}');
+            $this->fail('Expected LogtailIngestException for HTTP 402');
+        } catch (LogtailIngestException $exception) {
+            $this->assertSame("{$endpoint} answered HTTP 402: {\"error\": \"Quota exceeded\"}", $exception->getMessage());
+            $this->assertSame(402, $exception->getCode());
+        }
     }
 
     public function testServerErrorThrowsWithTheStartOfTheResponseBody(): void

@@ -78,7 +78,7 @@ class SynchronousLogtailHandlerTest extends TestCase
         $logger->pushHandler($handler);
 
         $this->expectException(\PHPUnit\Framework\Error\Warning::class);
-        $this->expectExceptionMessage("Failed to send a single log record to Better Stack because of Logtail\\Monolog\\LogtailIngestException: {$endpoint} answered HTTP 401: the source token or the ingesting host is wrong.");
+        $this->expectExceptionMessage("Failed to send a single log record to Better Stack because of Logtail\\Monolog\\LogtailIngestException: {$endpoint} answered HTTP 401: {\"error\": \"Unauthorized\"}. Check that the source token and the ingesting host match");
 
         $logger->debug('test message');
     }
@@ -92,7 +92,7 @@ class SynchronousLogtailHandlerTest extends TestCase
         $logger->pushHandler($handler);
 
         $this->expectException(LogtailIngestException::class);
-        $this->expectExceptionMessage("{$endpoint} answered HTTP 401: the source token or the ingesting host is wrong.");
+        $this->expectExceptionMessage("{$endpoint} answered HTTP 401: {\"error\": \"Unauthorized\"}. Check that the source token and the ingesting host match");
 
         $logger->debug('test message');
     }

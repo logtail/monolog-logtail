@@ -38,9 +38,12 @@ class IngestStub
         throw new \RuntimeException("The ingest stub did not start listening on port {$this->port}");
     }
 
-    public function endpointAnswering(int $status): string
+    /**
+     * @param int|string $answer a status, or one of the named answers in ingest-stub-router.php
+     */
+    public function endpointAnswering(int|string $answer): string
     {
-        return "http://127.0.0.1:{$this->port}/{$status}";
+        return "http://127.0.0.1:{$this->port}/{$answer}";
     }
 
     public function requestCount(): int
