@@ -22,6 +22,7 @@ class LogtailClient
     const DEFAULT_TIMEOUT_MILLISECONDS = 5000;
     const MAX_SEND_ATTEMPTS = 3;
     const RETRY_BACKOFF_MILLISECONDS = 100;
+    const RESPONSE_EXCERPT_BYTES = 200;
 
     private string $sourceToken;
     private string $endpoint;
@@ -59,6 +60,9 @@ class LogtailClient
             try {
                 $this->execute();
                 return;
+            } catch (LogtailIngestException $exception) {
+                // Better Stack answered, and it would answer the same request the same way.
+                throw $exception;
             } catch (\RuntimeException $exception) {
                 // Util::execute throws only on transport failures (not HTTP status), most often a
                 // reused keep-alive connection the server closed. Reconnect on a fresh handle and retry.
@@ -83,7 +87,24 @@ class LogtailClient
 
     protected function execute(): void
     {
-        \Monolog\Handler\Curl\Util::execute($this->handle, 1, false);
+        $responseBody = \Monolog\Handler\Curl\Util::execute($this->handle, 1, false);
+        $statusCode = \curl_getinfo($this->handle, CURLINFO_RESPONSE_CODE);
+
+        if ($statusCode >= 200 && $statusCode < 300) {
+            return;
+        }
+
+        $message = "{$this->endpoint} answered HTTP {$statusCode}";
+        if ($statusCode === 401 || $statusCode === 403) {
+            $message .= ": the source token or the ingesting host is wrong. Copy both from your source's settings in Better Stack.";
+        } elseif ($responseBody !== '') {
+            $message .= ': ' . \substr($responseBody, 0, self::RESPONSE_EXCERPT_BYTES);
+            if (\strlen($responseBody) > self::RESPONSE_EXCERPT_BYTES) {
+                $message .= '...';
+            }
+        }
+
+        throw new LogtailIngestException($message, $statusCode);
     }
 
     private function initCurlHandle(): void
