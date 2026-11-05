@@ -113,4 +113,16 @@ class SynchronousLogtailHandlerTest extends TestCase
             new \Monolog\LogRecord(new \DateTimeImmutable, 'test', \Monolog\Level::Info, 'second'),
         ]);
     }
+
+    public function testBatchRecordsAreProcessed(): void
+    {
+        $this->ingest = new IngestStub;
+        $handler = new SynchronousLogtailHandler('sourceTokenXYZ', endpoint: $this->ingest->endpointAnswering(202));
+
+        $handler->handleBatch([new \Monolog\LogRecord(new \DateTimeImmutable, 'test', \Monolog\Level::Info, 'first')]);
+
+        $extra = \json_decode($this->ingest->requestBodies()[0], true)[0]['monolog']['extra'];
+        $this->assertSame(\gethostname(), $extra['hostname'] ?? null);
+        $this->assertSame(\getmypid(), $extra['process_id'] ?? null);
+    }
 }

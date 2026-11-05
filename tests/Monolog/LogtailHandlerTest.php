@@ -4,6 +4,10 @@ namespace Logtail\Monolog;
 
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\BufferHandler;
+use Monolog\LogRecord;
+
+require_once __DIR__ . '/IngestStub.php';
+require_once __DIR__ . '/Checkout.php';
 
 class MockLogtailClient extends LogtailClient {
     public $capturedData = NULL;
@@ -44,6 +48,8 @@ class ConnectionProbeLogtailClient extends LogtailClient {
 }
 
 class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
+    private IngestStub $ingest;
+
     protected function setUp(): void
     {
         // set global $_SERVER data
@@ -55,6 +61,13 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
             'SERVER_NAME' => '',
             'HTTP_REFERER' => '',
         ]);
+    }
+
+    protected function tearDown(): void
+    {
+        if (isset($this->ingest)) {
+            $this->ingest->stop();
+        }
     }
 
 
@@ -199,5 +212,41 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertCount(1, $client->sent);
         $this->assertFalse($client->hasConnection());
+    }
+
+    public function testBufferedRecordsCarryTheExtraOfTheCodeThatLoggedThem() {
+        $this->ingest = new IngestStub;
+        $handler = new LogtailHandler('sourceTokenXYZ', endpoint: $this->ingest->endpointAnswering(202));
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+
+        (new \App\Checkout)->placeOrder($logger);
+        $logger->close();
+
+        $extra = \json_decode($this->ingest->requestBodies()[0], true)[0]['monolog']['extra'];
+        $this->assertSame(\gethostname(), $extra['hostname'] ?? null);
+        $this->assertSame(\getmypid(), $extra['process_id'] ?? null);
+        $this->assertSame(__DIR__ . '/Checkout.php', $extra['file'] ?? null);
+        $this->assertSame(15, $extra['line'] ?? null);
+        $this->assertSame('App\\Checkout', $extra['class'] ?? null);
+        $this->assertSame('placeOrder', $extra['function'] ?? null);
+    }
+
+    public function testBufferedRecordsAreProcessedOnce() {
+        $this->ingest = new IngestStub;
+        $handler = new LogtailHandler('sourceTokenXYZ', endpoint: $this->ingest->endpointAnswering(202));
+        $handler->pushProcessor(function (LogRecord $record): LogRecord {
+            $record->extra['processed'] = ($record->extra['processed'] ?? 0) + 1;
+            return $record;
+        });
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+
+        $logger->info('first');
+        $logger->info('second');
+        $logger->close();
+
+        $batch = \json_decode($this->ingest->requestBodies()[0], true);
+        $this->assertSame([1, 1], \array_map(fn (array $record) => $record['monolog']['extra']['processed'], $batch));
     }
 }
