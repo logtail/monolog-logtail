@@ -162,8 +162,9 @@ jobs:
         run: |
           installed() { composer show --format=json | jq -r --arg package "$1" '.installed[] | select(.name == $package) | .version'; }
           MONOLOG=$(installed monolog/monolog)
-          if [ "$CLIENT" = checkout ]; then FROM="the checkout at $(git rev-parse --short HEAD)"; else FROM=Packagist; fi
-          INSTALLED="PHP $(php -r 'echo PHP_VERSION;'), logtail/monolog-logtail $(installed logtail/monolog-logtail) from $FROM, monolog/monolog $MONOLOG, psr/log $(installed psr/log)"
+          # From the checkout, composer names the client's version after the commit, so the commit is enough.
+          if [ "$CLIENT" = checkout ]; then FROM="from the checkout at $(git rev-parse --short HEAD)"; else FROM="$(installed logtail/monolog-logtail) from Packagist"; fi
+          INSTALLED="PHP $(php -r 'echo PHP_VERSION;'), logtail/monolog-logtail $FROM, monolog/monolog $MONOLOG, psr/log $(installed psr/log)"
           mkdir -p ../out
           echo "- $INSTALLED" | tee -a ../out/versions.md "$GITHUB_STEP_SUMMARY"
           # The errors of the later steps name the versions: the Linear issue shows them when no read-back summary exists.
