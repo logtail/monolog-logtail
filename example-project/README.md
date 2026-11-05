@@ -13,13 +13,15 @@ This command will install all dependencies from `composer.json` file and lock th
 
  ## Run the example project
  
- To run the example application, simply run the following command:
+ To run the example application, set your source token and ingesting host in the environment and run the script:
 
 ```bash
-php index.php <source-token> <source-endpoint>
+export BETTER_STACK_SOURCE_TOKEN=<source-token>
+export BETTER_STACK_INGESTING_HOST=<ingesting-host>
+php index.php
 ```
 
-*Don't forget to replace `<source-token>` with your actual source token, and `<source-endpoint>` with the URL of your ingesting endpoint (eg. `https://in.logs.betterstack.com`), which you can find by going to telemetry.betterstack.com -> sources -> edit.*
+*Don't forget to replace `<source-token>` and `<ingesting-host>` with your actual source token and ingesting host (eg. `s12345.eu-nbg-2.betterstackdata.com`, without `https://`), which you can find by going to **[Sources](https://telemetry.betterstack.com/team/0/sources) -> Configure** in Better Stack.*
 
 You should see the following output:
 ```text

@@ -1,3 +1,4 @@
 /vendor/
 /example-project/vendor/
 /composer.lock
+/example-project/composer.lock
