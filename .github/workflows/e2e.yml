@@ -10,6 +10,8 @@ name: E2E
 #   latest  the newest stable PHP with the newest Monolog release on Packagist; composer quietly installing an older
 #           Monolog, because composer.json's constraint excludes the newest one (a new major), fails the job
 #   canary  PHP nightly with Monolog's main branch, minimum-stability dev
+# The floor leg runs on the oldest Ubuntu image GitHub offers, latest and canary on ubuntu-latest, so a new runner image
+# is covered as well.
 # Pushes to master and pull requests install the client from the checkout, through a path repository. The daily
 # schedule installs the newest release from Packagist, pinned exactly, which is what a customer gets today. A failure on
 # master or on the schedule files a Linear issue (notify_linear_failure.yml), at low priority when only the canary
@@ -101,7 +103,8 @@ jobs:
             | map(if $override == "" then .
                 elif ($override | test("^[0-9a-f]{7,40}$")) then .monolog = "dev-main" | .require = "dev-main#\($override)" | .reference = $override
                 else .monolog = $override | .require = $override | .reference = "" end)
-            | map(. + {client: $client, name: "\(.leg) (PHP \(.php), Monolog \(.monolog)\(if .reference != "" then " " + .reference[0:7] else "" end))"})')
+            | map(. + {client: $client, runner: (if .leg == "floor" then "ubuntu-24.04" else "ubuntu-latest" end),
+                name: "\(.leg) (PHP \(.php), Monolog \(.monolog)\(if .reference != "" then " " + .reference[0:7] else "" end))"})')
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           jq . <<<"$MATRIX"
 
@@ -109,7 +112,7 @@ jobs:
     needs: plan
     name: ${{ matrix.name }}
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
