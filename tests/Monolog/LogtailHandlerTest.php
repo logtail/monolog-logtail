@@ -5,6 +5,8 @@ namespace Logtail\Monolog;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\BufferHandler;
 
+require_once __DIR__ . '/IngestStub.php';
+
 class MockLogtailClient extends LogtailClient {
     public $capturedData = NULL;
 
@@ -43,7 +45,19 @@ class ConnectionProbeLogtailClient extends LogtailClient {
     }
 }
 
+class RecordingLogtailClient extends LogtailClient {
+    public array $sent = [];
+
+    public function send($data): void
+    {
+        $this->sent[] = $data;
+        parent::send($data);
+    }
+}
+
 class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
+    private IngestStub $ingest;
+
     protected function setUp(): void
     {
         // set global $_SERVER data
@@ -55,6 +69,13 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
             'SERVER_NAME' => '',
             'HTTP_REFERER' => '',
         ]);
+    }
+
+    protected function tearDown(): void
+    {
+        if (isset($this->ingest)) {
+            $this->ingest->stop();
+        }
     }
 
 
@@ -199,5 +220,116 @@ class LogtailHandlerTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertCount(1, $client->sent);
         $this->assertFalse($client->hasConnection());
+    }
+
+    public function testAcceptedBatchIsSentOnce() {
+        $this->ingest = new IngestStub;
+        $synchronousHandler = new SynchronousLogtailHandler('sourceTokenXYZ');
+        $handler = new LogtailHandler('sourceTokenXYZ', flushIntervalMs: null);
+        $client = new RecordingLogtailClient('sourceTokenXYZ', $this->ingest->endpointAnswering(202));
+        (function() use ($client) { $this->client = $client; })->call($synchronousHandler);
+        (function() use ($synchronousHandler) { $this->handler = $synchronousHandler; })->call($handler);
+
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('first message');
+        $logger->debug('second message');
+
+        $handler->flush();
+        $handler->flush();
+        $handler->close();
+
+        $this->assertSame(1, $this->ingest->requestCount());
+        $this->assertSame(
+            [['first message', 'second message']],
+            array_map(fn(string $batch) => array_column(\json_decode($batch, true), 'message'), $client->sent)
+        );
+    }
+
+    public function testRejectedBatchIsThrownOnceAndNotSentAgain() {
+        $this->ingest = new IngestStub;
+        $endpoint = $this->ingest->endpointAnswering(401);
+        $handler = new LogtailHandler('wrongSourceToken', endpoint: $endpoint, flushIntervalMs: null, throwExceptions: true);
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+
+        // close() is also what BufferHandler's shutdown function runs at the end of the script
+        $thrown = $this->messagesThrownBy(
+            LogtailIngestException::class,
+            fn() => $handler->flush(),
+            fn() => $handler->flush(),
+            fn() => $handler->close(),
+        );
+
+        $this->assertSame(
+            ["{$endpoint} answered HTTP 401: {\"error\": \"Unauthorized\"}. Check that the source token and the ingesting host match your source's settings in Better Stack."],
+            $thrown
+        );
+        $this->assertSame(1, $this->ingest->requestCount());
+    }
+
+    public function testRejectedBatchIsOneWarningAndNotSentAgain() {
+        $this->ingest = new IngestStub;
+        $endpoint = $this->ingest->endpointAnswering(401);
+        $handler = new LogtailHandler('wrongSourceToken', endpoint: $endpoint, flushIntervalMs: null);
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+
+        // what PHP does without an error handler: report the warning and carry on
+        $warnings = [];
+        set_error_handler(function(int $level, string $message) use (&$warnings) {
+            $warnings[] = $message;
+            return true;
+        }, E_USER_WARNING);
+        try {
+            $handler->flush();
+            $handler->flush();
+            $handler->close();
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertCount(1, $warnings);
+        $this->assertStringStartsWith("Failed to send 1 log records to Better Stack because of Logtail\\Monolog\\LogtailIngestException: {$endpoint} answered HTTP 401", $warnings[0]);
+        $this->assertSame(1, $this->ingest->requestCount());
+    }
+
+    public function testRejectedBatchIsNotSentAgainWhenTheWarningIsThrown() {
+        $this->ingest = new IngestStub;
+        $endpoint = $this->ingest->endpointAnswering(401);
+        $handler = new LogtailHandler('wrongSourceToken', endpoint: $endpoint, flushIntervalMs: null);
+        $logger = new \Monolog\Logger('test');
+        $logger->pushHandler($handler);
+        $logger->debug('test message');
+
+        // PHPUnit turns the warning into an exception, as Laravel's error handler does
+        $warnings = $this->messagesThrownBy(
+            \PHPUnit\Framework\Error\Warning::class,
+            fn() => $handler->flush(),
+            fn() => $handler->flush(),
+            fn() => $handler->close(),
+        );
+
+        $this->assertCount(1, $warnings);
+        $this->assertStringStartsWith("Failed to send 1 log records to Better Stack because of Logtail\\Monolog\\LogtailIngestException: {$endpoint} answered HTTP 401", $warnings[0]);
+        $this->assertSame(1, $this->ingest->requestCount());
+    }
+
+    private function messagesThrownBy(string $class, callable ...$steps): array {
+        $messages = [];
+        foreach ($steps as $step) {
+            try {
+                $step();
+            } catch (\Throwable $throwable) {
+                if (!$throwable instanceof $class) {
+                    throw $throwable;
+                }
+                $messages[] = $throwable->getMessage();
+            }
+        }
+
+        return $messages;
     }
 }
