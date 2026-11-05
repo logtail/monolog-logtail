@@ -28,7 +28,7 @@ on:
     branches: [master]
   pull_request:
   schedule:
-    - cron: '10 6 * * *'
+    - cron: '45 5 * * *'
   workflow_dispatch:
     inputs:
       leg:
@@ -169,6 +169,18 @@ jobs:
           echo "- $INSTALLED" | tee -a ../out/versions.md "$GITHUB_STEP_SUMMARY"
           # The errors of the later steps name the versions: the Linear issue shows them when no read-back summary exists.
           echo "INSTALLED=$INSTALLED" >> "$GITHUB_ENV"
+          # The client is the checkout, file for file (the path repository links vendor/ to it), or on the schedule
+          # exactly the planned release, never a release of the same number from the Packagist cache.
+          if [ "$CLIENT" = checkout ]; then
+            if ! diff -r ../src vendor/logtail/monolog-logtail/src > ../out/client.diff; then
+              head -n 20 ../out/client.diff
+              echo "::error::vendor/logtail/monolog-logtail differs from the checkout's src/ directory."
+              exit 1
+            fi
+          elif [ "$(installed logtail/monolog-logtail)" != "$CLIENT" ]; then
+            echo "::error::logtail/monolog-logtail $(installed logtail/monolog-logtail) is installed, but the schedule plans the newest release $CLIENT."
+            exit 1
+          fi
 
           if [ -n "$MONOLOG_REFERENCE" ]; then
             REFERENCE=$(composer show monolog/monolog --format=json | jq -r '.source.reference')
