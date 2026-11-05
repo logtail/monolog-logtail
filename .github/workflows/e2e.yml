@@ -276,6 +276,5 @@ jobs:
       checks: read
     uses: ./.github/workflows/notify_linear_failure.yml
     with:
-      assignee: petr
       job_summaries: true
     secrets: inherit
