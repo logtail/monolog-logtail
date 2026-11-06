@@ -2,41 +2,41 @@
   {
     "level": "Debug",
     "message": "Logtail logger is ready!",
-    "contains": {"monolog": {"channel": "logtail-source"}}
+    "contains": {"monolog": {"channel": "logtail-source", "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Info",
     "message": "An interesting event occurred!",
-    "contains": {"monolog": {"channel": "logtail-source"}}
+    "contains": {"monolog": {"channel": "logtail-source", "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Notice",
     "message": "Sending notice",
-    "contains": {"monolog": {"channel": "logtail-source"}}
+    "contains": {"monolog": {"channel": "logtail-source", "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Warning",
     "message": "Something is not quite right ...",
-    "contains": {"monolog": {"channel": "logtail-source", "context": {"additional_data": {"item1": "value1", "item2": "value2"}}}}
+    "contains": {"monolog": {"channel": "logtail-source", "context": {"additional_data": {"item1": "value1", "item2": "value2"}}, "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Error",
     "message": "Oops! A runtime ERROR occurred!",
-    "contains": {"monolog": {"channel": "logtail-source", "context": {"exception": {"class": "RuntimeException", "message": "Could not connect to the database", "code": 0, "file": "/example-project/index.php:"}}}}
+    "contains": {"monolog": {"channel": "logtail-source", "context": {"exception": {"class": "RuntimeException", "message": "Could not connect to the database", "code": 0, "file": "/example-project/index.php:"}}, "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Critical",
     "message": "Oh no! A critical event occurred!",
-    "contains": {"monolog": {"channel": "logtail-source"}}
+    "contains": {"monolog": {"channel": "logtail-source", "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Alert",
     "message": "Something terrible happened! Immediate action is required!",
-    "contains": {"monolog": {"channel": "logtail-source"}}
+    "contains": {"monolog": {"channel": "logtail-source", "extra": {"file": "/example-project/index.php"}}}
   },
   {
     "level": "Emergency",
     "message": "Application just crashed! Immediate action is required!",
-    "contains": {"monolog": {"channel": "logtail-source"}}
+    "contains": {"monolog": {"channel": "logtail-source", "extra": {"file": "/example-project/index.php"}}}
   }
 ]

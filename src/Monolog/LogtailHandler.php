@@ -52,7 +52,12 @@ class LogtailHandler extends BufferHandler
         ?int $flushIntervalMs = self::DEFAULT_FLUSH_INTERVAL_MILLISECONDS,
         bool $throwExceptions = SynchronousLogtailHandler::DEFAULT_THROW_EXCEPTION
     ) {
-        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint, $connectionTimeoutMs, $timeoutMs, $throwExceptions), $bufferLimit, $level, $bubble, $flushOnOverflow);
+        parent::__construct(new SynchronousLogtailHandler($sourceToken, $level, $bubble, $endpoint, $connectionTimeoutMs, $timeoutMs, $throwExceptions, withDefaultProcessors: false), $bufferLimit, $level, $bubble, $flushOnOverflow);
+        // The buffer runs its processors as each record is logged. The synchronous handler would run them only at the
+        // flush, when the call stack the IntrospectionProcessor reads no longer leads to the code that logged.
+        foreach (SynchronousLogtailHandler::defaultProcessors($level) as $processor) {
+            $this->pushProcessor($processor);
+        }
         $this->flushIntervalMs = $flushIntervalMs;
         $this->setHighResolutionTimeOfLastFlush();
     }
