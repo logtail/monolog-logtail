@@ -38,6 +38,7 @@ class SynchronousLogtailHandler extends AbstractProcessingHandler
      * @param int $connectionTimeoutMs
      * @param int $timeoutMs
      * @param bool throwExceptions
+     * @param bool $withDefaultProcessors Whether to push the {@see self::defaultProcessors()}
      */
     public function __construct(
         string $sourceToken,
@@ -46,17 +47,36 @@ class SynchronousLogtailHandler extends AbstractProcessingHandler
         string $endpoint = LogtailClient::URL,
         int $connectionTimeoutMs = LogtailClient::DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS,
         int $timeoutMs = LogtailClient::DEFAULT_TIMEOUT_MILLISECONDS,
-        bool $throwExceptions = self::DEFAULT_THROW_EXCEPTION
+        bool $throwExceptions = self::DEFAULT_THROW_EXCEPTION,
+        bool $withDefaultProcessors = true
     ) {
         parent::__construct($level, $bubble);
 
         $this->client = new LogtailClient($sourceToken, $endpoint, $connectionTimeoutMs, $timeoutMs);
         $this->throwExceptions = $throwExceptions;
 
-        $this->pushProcessor(new IntrospectionProcessor($level, ['Logtail\\']));
-        $this->pushProcessor(new WebProcessor);
-        $this->pushProcessor(new ProcessIdProcessor);
-        $this->pushProcessor(new HostnameProcessor);
+        if ($withDefaultProcessors) {
+            foreach (self::defaultProcessors($level) as $processor) {
+                $this->pushProcessor($processor);
+            }
+        }
+    }
+
+    /**
+     * Processors that add the file and line of the log call, the web request, the process ID and the hostname to
+     * every record's extra.
+     *
+     * @param int|string|Level $level The minimum logging level at which the file and line are added
+     * @return callable[]
+     */
+    public static function defaultProcessors(int|string|Level $level): array
+    {
+        return [
+            new IntrospectionProcessor($level, ['Logtail\\']),
+            new WebProcessor,
+            new ProcessIdProcessor,
+            new HostnameProcessor,
+        ];
     }
 
     /**
@@ -80,6 +100,9 @@ class SynchronousLogtailHandler extends AbstractProcessingHandler
      */
     public function handleBatch(array $records): void
     {
+        foreach ($records as $index => $record) {
+            $records[$index] = $this->processRecord($record);
+        }
         $formattedRecords = $this->getFormatter()->formatBatch($records);
         try {
             $this->client->send($formattedRecords);

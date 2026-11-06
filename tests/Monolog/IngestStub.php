@@ -51,6 +51,14 @@ class IngestStub
         return \substr_count(\file_get_contents($this->requestLog), "\n");
     }
 
+    /**
+     * @return string[] the body of every request received, in order
+     */
+    public function requestBodies(): array
+    {
+        return \array_map(\json_decode(...), \file($this->requestLog, FILE_IGNORE_NEW_LINES));
+    }
+
     public function stop(): void
     {
         \proc_terminate($this->process);
