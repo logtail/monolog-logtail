@@ -82,8 +82,14 @@ class LogtailHandler extends BufferHandler
      */
     public function flush(): void
     {
-        parent::flush();
-        $this->setHighResolutionTimeOfLastFlush();
+        try {
+            parent::flush();
+        } finally {
+            // A failed batch is dropped, not sent again by the next flush or the shutdown close():
+            // LogtailClient::send() has already retried it, and Better Stack answers a rejected one the same way.
+            $this->clear();
+            $this->setHighResolutionTimeOfLastFlush();
+        }
     }
 
     private function setHighResolutionTimeOfLastFlush(): void
